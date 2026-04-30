@@ -40,190 +40,178 @@ const maps = [
   },
 ]
 
-// ─── Pakistan Worker card visual ──────────────────────────────────────────────
-const PakistanWorkerSVG = () => (
-  <svg style={svgStyle} viewBox="0 0 400 260">
-    {/* Ghost year */}
-    <text x="14" y="230" fontFamily="'Playfair Display', serif" fontSize="80"
-      fill="#C9B88A" opacity="0.035" fontWeight="900">1947</text>
-
-    {/* Pakistan faint circle */}
-    <circle cx="118" cy="148" r="52" fill="none" stroke="#C9B88A" strokeWidth="0.6" opacity="0.1"/>
-    <ellipse cx="118" cy="148" rx="52" ry="16" fill="none" stroke="#C9B88A" strokeWidth="0.4" opacity="0.06"/>
-
-    {/* Gulf faint circle */}
-    <circle cx="250" cy="122" r="26" fill="none" stroke="#8B1A1A" strokeWidth="0.5" opacity="0.1"/>
-
-    {/* Origin dot — Pakistan */}
-    <circle cx="118" cy="148" r="5" fill="#C9B88A" opacity="0.9"/>
-    <circle cx="118" cy="148" r="14" fill="none" stroke="#C9B88A" strokeWidth="0.7" opacity="0">
-      <animate attributeName="r" values="8;20;8" dur="3s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.3;0;0.3" dur="3s" repeatCount="indefinite"/>
+// ─── Pakistan Worker: single bold arc, moving dot ─────────────────────────────
+const WorkerVisual = () => (
+  <svg
+    viewBox="0 0 500 260"
+    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+  >
+    {/* Origin dot — Karachi */}
+    <circle cx="140" cy="168" r="5" fill="#C9B88A" opacity="0.95"/>
+    {/* Pulse ring */}
+    <circle cx="140" cy="168" r="5" fill="none" stroke="#C9B88A" strokeWidth="1">
+      <animate attributeName="r" values="8;24;8" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;0;0.5" dur="3s" repeatCount="indefinite"/>
     </circle>
 
-    {/* Flow 1 — main arc */}
-    <path d="M 126 140 Q 192 72 250 110" fill="none" stroke="#C9B88A"
-      strokeWidth="1.2" strokeDasharray="5 4" opacity="0.65">
-      <animate attributeName="stroke-dashoffset" from="0" to="-200" dur="3s" repeatCount="indefinite"/>
-    </path>
-    <circle r="2.8" fill="#C9B88A" opacity="0.9">
-      <animateMotion dur="3s" repeatCount="indefinite"
-        path="M 126 140 Q 192 72 250 110"/>
+    {/* Single bold arc */}
+    <path
+      d="M 140 168 Q 310 30 390 118"
+      fill="none"
+      stroke="#C9B88A"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      opacity="0.7"
+    />
+
+    {/* Animated dot traveling the arc */}
+    <circle r="5" fill="#C9B88A" opacity="0.95">
+      <animateMotion
+        dur="3.5s"
+        repeatCount="indefinite"
+        path="M 140 168 Q 310 30 390 118"
+      />
+      <animate attributeName="opacity" values="0;1;1;0" dur="3.5s" repeatCount="indefinite"/>
     </circle>
 
-    {/* Flow 2 */}
-    <path d="M 122 136 Q 194 62 254 100" fill="none" stroke="#C9B88A"
-      strokeWidth="0.75" strokeDasharray="4 6" opacity="0.38">
-      <animate attributeName="stroke-dashoffset" from="0" to="-200" dur="4.3s" repeatCount="indefinite"/>
-    </path>
-    <circle r="2" fill="#C9B88A" opacity="0.65">
-      <animateMotion dur="4.3s" repeatCount="indefinite"
-        path="M 122 136 Q 194 62 254 100"/>
+    {/* Destination dot — Gulf */}
+    <circle cx="390" cy="118" r="5" fill="#C9B88A" opacity="0.85">
+      <animate attributeName="opacity" values="0.85;0.3;0.85" dur="2s" repeatCount="indefinite"/>
     </circle>
 
-    {/* Flow 3 */}
-    <path d="M 118 154 Q 195 88 248 128" fill="none" stroke="#C9B88A"
-      strokeWidth="0.5" strokeDasharray="3 7" opacity="0.2">
-      <animate attributeName="stroke-dashoffset" from="0" to="-200" dur="5.8s" repeatCount="indefinite"/>
-    </path>
+    {/* Origin label */}
+    <text
+      x="140" y="192"
+      textAnchor="middle"
+      fontFamily="'DM Mono', monospace"
+      fontSize="9"
+      fill="#C9B88A"
+      opacity="0.45"
+      letterSpacing="0.18em"
+    >
+      KARACHI
+    </text>
 
-    {/* Flow 4 */}
-    <path d="M 114 152 Q 190 96 244 134" fill="none" stroke="#C9B88A"
-      strokeWidth="0.4" strokeDasharray="2 8" opacity="0.14">
-      <animate attributeName="stroke-dashoffset" from="0" to="-200" dur="7s" repeatCount="indefinite"/>
-    </path>
-
-    {/* Remittance return — faint reverse */}
-    <path d="M 244 118 Q 178 168 124 156" fill="none" stroke="#C9B88A"
-      strokeWidth="0.4" strokeDasharray="2 9" opacity="0.12">
-      <animate attributeName="stroke-dashoffset" from="0" to="200" dur="5s" repeatCount="indefinite"/>
-    </path>
-
-    {/* Gulf destination dots */}
-    <circle cx="250" cy="110" r="4" fill="#8B1A1A" opacity="0.85">
-      <animate attributeName="opacity" values="0.85;0.25;0.85" dur="2.3s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="254" cy="100" r="2.8" fill="#8B1A1A" opacity="0.6">
-      <animate attributeName="opacity" values="0.6;0.18;0.6" dur="2.9s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="248" cy="128" r="2.2" fill="#8B1A1A" opacity="0.45">
-      <animate attributeName="opacity" values="0.45;0.12;0.45" dur="3.5s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="244" cy="134" r="1.8" fill="#8B1A1A" opacity="0.35">
-      <animate attributeName="opacity" values="0.35;0.08;0.35" dur="4s" repeatCount="indefinite"/>
-    </circle>
-
-    {/* Region labels */}
-    <text x="72" y="210" fontFamily="'DM Mono', monospace" fontSize="7.5"
-      fill="#C9B88A" opacity="0.28" letterSpacing="0.18em">PAKISTAN</text>
-    <text x="228" y="155" fontFamily="'DM Mono', monospace" fontSize="7.5"
-      fill="#8B1A1A" opacity="0.28" letterSpacing="0.14em">GULF</text>
+    {/* Destination label */}
+    <text
+      x="390" y="142"
+      textAnchor="middle"
+      fontFamily="'DM Mono', monospace"
+      fontSize="9"
+      fill="#C9B88A"
+      opacity="0.45"
+      letterSpacing="0.18em"
+    >
+      GULF
+    </text>
   </svg>
 )
 
-// ─── Partition card visual ────────────────────────────────────────────────────
-const PartitionSVG = () => (
-  <svg style={svgStyle} viewBox="0 0 400 260">
+// ─── Partition: centered train, large, gold on dark red ───────────────────────
+const PartitionVisual = () => (
+  <svg
+    viewBox="0 0 500 260"
+    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+  >
+    {/* Smoke */}
+    <ellipse cx="134" cy="62" rx="9" ry="6" fill="#C9B88A" opacity="0.12">
+      <animate attributeName="cy" values="62;50;62" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.12;0.04;0.12" dur="2s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="130" cy="52" rx="7" ry="5" fill="#C9B88A" opacity="0.08">
+      <animate attributeName="cy" values="52;40;52" dur="2.6s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="127" cy="43" rx="5" ry="4" fill="#C9B88A" opacity="0.05">
+      <animate attributeName="cy" values="43;30;43" dur="3.2s" repeatCount="indefinite"/>
+    </ellipse>
+
+    {/* Chimney */}
+    <rect x="128" y="72" width="10" height="18" rx="2" fill="#C9B88A" opacity="0.85"/>
+
+    {/* Boiler dome */}
+    <ellipse cx="188" cy="82" rx="16" ry="10" fill="#C9B88A" opacity="0.8"/>
+
+    {/* Main boiler body */}
+    <rect x="80" y="88" width="180" height="44" rx="5" fill="#C9B88A" opacity="0.85"/>
+
+    {/* Cab */}
+    <rect x="240" y="64" width="68" height="68" rx="4" fill="#C9B88A" opacity="0.85"/>
+    {/* Cab windows */}
+    <rect x="250" y="74" width="20" height="14" rx="2" fill="#1a0505" opacity="0.7"/>
+    <rect x="278" y="74" width="20" height="14" rx="2" fill="#1a0505" opacity="0.7"/>
+    {/* Cab door line */}
+    <line x1="240" y1="112" x2="308" y2="112" stroke="#1a0505" strokeWidth="1.5" opacity="0.4"/>
+
+    {/* Carriage 1 */}
+    <rect x="312" y="76" width="100" height="56" rx="4" fill="#C9B88A" opacity="0.72"/>
+    <rect x="322" y="86" width="16" height="12" rx="2" fill="#1a0505" opacity="0.5"/>
+    <rect x="346" y="86" width="16" height="12" rx="2" fill="#1a0505" opacity="0.5"/>
+    <rect x="370" y="86" width="16" height="12" rx="2" fill="#1a0505" opacity="0.5"/>
+
+    {/* Carriage 2 */}
+    <rect x="418" y="76" width="68" height="56" rx="4" fill="#C9B88A" opacity="0.55"/>
+    <rect x="428" y="86" width="14" height="12" rx="2" fill="#1a0505" opacity="0.5"/>
+    <rect x="450" y="86" width="14" height="12" rx="2" fill="#1a0505" opacity="0.5"/>
+
+    {/* Coupling 1 */}
+    <rect x="306" y="112" width="10" height="5" rx="1" fill="#C9B88A" opacity="0.6"/>
+    {/* Coupling 2 */}
+    <rect x="412" y="112" width="10" height="5" rx="1" fill="#C9B88A" opacity="0.6"/>
+
+    {/* Wheels — locomotive */}
+    <circle cx="110" cy="136" r="20" fill="#1a0505" stroke="#C9B88A" strokeWidth="3"/>
+    <circle cx="110" cy="136" r="7" fill="#C9B88A" opacity="0.9"/>
+    <circle cx="158" cy="136" r="15" fill="#1a0505" stroke="#C9B88A" strokeWidth="2.5"/>
+    <circle cx="158" cy="136" r="5" fill="#C9B88A" opacity="0.9"/>
+    <circle cx="202" cy="136" r="15" fill="#1a0505" stroke="#C9B88A" strokeWidth="2.5"/>
+    <circle cx="202" cy="136" r="5" fill="#C9B88A" opacity="0.9"/>
+
+    {/* Wheels — carriage 1 */}
+    <circle cx="335" cy="135" r="12" fill="#1a0505" stroke="#C9B88A" strokeWidth="2"/>
+    <circle cx="335" cy="135" r="4" fill="#C9B88A" opacity="0.8"/>
+    <circle cx="375" cy="135" r="12" fill="#1a0505" stroke="#C9B88A" strokeWidth="2"/>
+    <circle cx="375" cy="135" r="4" fill="#C9B88A" opacity="0.8"/>
+
+    {/* Wheels — carriage 2 */}
+    <circle cx="432" cy="135" r="11" fill="#1a0505" stroke="#C9B88A" strokeWidth="2"/>
+    <circle cx="432" cy="135" r="4" fill="#C9B88A" opacity="0.8"/>
+    <circle cx="468" cy="135" r="11" fill="#1a0505" stroke="#C9B88A" strokeWidth="2"/>
+    <circle cx="468" cy="135" r="4" fill="#C9B88A" opacity="0.8"/>
+
+    {/* Rail */}
+    <line x1="20" y1="156" x2="490" y2="156" stroke="#C9B88A" strokeWidth="2" opacity="0.25"/>
+    {/* Sleepers */}
+    {[30,70,110,150,190,230,270,310,350,390,430,470].map(x => (
+      <line key={x} x1={x} y1="150" x2={x} y2="162"
+        stroke="#C9B88A" strokeWidth="2" opacity="0.14"/>
+    ))}
+
+    {/* Bottom label */}
+    <text
+      x="250" y="200"
+      textAnchor="middle"
+      fontFamily="'DM Mono', monospace"
+      fontSize="9"
+      fill="#C9B88A"
+      opacity="0.35"
+      letterSpacing="0.22em"
+    >
+      LAHORE · AMRITSAR · 1947
+    </text>
+
     {/* Ghost year */}
-    <text x="14" y="230" fontFamily="'Playfair Display', serif" fontSize="82"
-      fill="#C9B88A" opacity="0.03" fontWeight="900">1947</text>
-
-    {/* Subcontinent fill */}
-    <polygon
-      points="172,22 226,20 264,36 294,66 308,104 302,146 280,176 248,202 204,218 164,212 138,190 118,162 108,130 114,94 130,64 152,40"
-      fill="#C9B88A" opacity="0.035"/>
-    {/* Subcontinent outline */}
-    <polygon
-      points="172,22 226,20 264,36 294,66 308,104 302,146 280,176 248,202 204,218 164,212 138,190 118,162 108,130 114,94 130,64 152,40"
-      fill="none" stroke="#C9B88A" strokeWidth="0.75" opacity="0.16"/>
-
-    {/* Radcliffe Line — Punjab */}
-    <line x1="185" y1="25" x2="167" y2="100"
-      stroke="#fff" strokeWidth="1.4" strokeDasharray="4 3" opacity="0">
-      <animate attributeName="opacity" values="0;0;0.55;0.55" dur="2.2s" fill="freeze"/>
-    </line>
-
-    {/* Radcliffe Line — Bengal */}
-    <line x1="278" y1="118" x2="282" y2="178"
-      stroke="#fff" strokeWidth="1.4" strokeDasharray="4 3" opacity="0">
-      <animate attributeName="opacity" values="0;0;0;0;0.55;0.55" dur="3.4s" fill="freeze"/>
-    </line>
-
-    {/* Pakistan side — Punjab */}
-    <polygon points="172,22 185,25 167,100 138,66 130,44 152,40"
-      fill="#1B5E20" opacity="0">
-      <animate attributeName="opacity" values="0;0;0.15;0.15" dur="2.4s" fill="freeze"/>
-    </polygon>
-
-    {/* India side — Punjab */}
-    <polygon points="185,25 226,20 234,62 204,80 170,86 167,100"
-      fill="#FF8F00" opacity="0">
-      <animate attributeName="opacity" values="0;0;0.15;0.15" dur="2.4s" fill="freeze"/>
-    </polygon>
-
-    {/* East Pakistan — Bengal */}
-    <polygon points="278,118 304,112 308,140 294,166 282,178"
-      fill="#1B5E20" opacity="0">
-      <animate attributeName="opacity" values="0;0;0;0;0.15;0.15" dur="3.6s" fill="freeze"/>
-    </polygon>
-
-    {/* West Bengal */}
-    <polygon points="262,132 278,118 282,178 270,178 258,156"
-      fill="#FF8F00" opacity="0">
-      <animate attributeName="opacity" values="0;0;0;0;0.15;0.15" dur="3.6s" fill="freeze"/>
-    </polygon>
-
-    {/* Violence — Rawalpindi */}
-    <circle cx="173" cy="60" r="3" fill="#8B1A1A" opacity="0">
-      <animate attributeName="opacity" values="0;0;0.9;0.9" dur="2.6s" fill="freeze" begin="0s"/>
-      <animate attributeName="r" values="3;8;3" dur="2.8s" repeatCount="indefinite" begin="2.6s"/>
-      <animate attributeName="opacity" values="0.9;0.15;0.9" dur="2.8s" repeatCount="indefinite" begin="2.6s"/>
-    </circle>
-
-    {/* Violence — Amritsar */}
-    <circle cx="202" cy="74" r="3" fill="#8B1A1A" opacity="0">
-      <animate attributeName="opacity" values="0;0;0;0.85;0.85" dur="3s" fill="freeze" begin="0s"/>
-      <animate attributeName="r" values="3;7;3" dur="2.5s" repeatCount="indefinite" begin="3s"/>
-      <animate attributeName="opacity" values="0.85;0.12;0.85" dur="2.5s" repeatCount="indefinite" begin="3s"/>
-    </circle>
-
-    {/* Violence — Sheikhupura */}
-    <circle cx="186" cy="68" r="2.5" fill="#8B1A1A" opacity="0">
-      <animate attributeName="opacity" values="0;0;0.7;0.7" dur="2.8s" fill="freeze" begin="0s"/>
-      <animate attributeName="r" values="2.5;6;2.5" dur="3.2s" repeatCount="indefinite" begin="2.8s"/>
-      <animate attributeName="opacity" values="0.7;0.1;0.7" dur="3.2s" repeatCount="indefinite" begin="2.8s"/>
-    </circle>
-
-    {/* Violence — Calcutta */}
-    <circle cx="270" cy="150" r="2.5" fill="#8B1A1A" opacity="0">
-      <animate attributeName="opacity" values="0;0;0;0;0.75;0.75" dur="3.8s" fill="freeze" begin="0s"/>
-      <animate attributeName="r" values="2.5;6;2.5" dur="3s" repeatCount="indefinite" begin="3.8s"/>
-      <animate attributeName="opacity" values="0.75;0.1;0.75" dur="3s" repeatCount="indefinite" begin="3.8s"/>
-    </circle>
-
-    {/* Migration flows — Punjab */}
-    <path d="M 202 80 Q 180 74 167 98" fill="none"
-      stroke="#1B5E20" strokeWidth="1" strokeDasharray="4 3" opacity="0.5">
-      <animate attributeName="stroke-dashoffset" from="0" to="-60" dur="2.5s" repeatCount="indefinite" begin="2.6s"/>
-    </path>
-    <path d="M 170 90 Q 188 95 202 88" fill="none"
-      stroke="#FF8F00" strokeWidth="1" strokeDasharray="4 3" opacity="0.5">
-      <animate attributeName="stroke-dashoffset" from="0" to="-60" dur="2.8s" repeatCount="indefinite" begin="2.6s"/>
-    </path>
-
-    {/* City labels */}
-    <text x="148" y="54" fontFamily="'DM Mono', monospace" fontSize="6"
-      fill="#C9B88A" opacity="0.28" letterSpacing="0.1em">LAHORE</text>
-    <text x="204" y="70" fontFamily="'DM Mono', monospace" fontSize="6"
-      fill="#C9B88A" opacity="0.28" letterSpacing="0.1em">AMRITSAR</text>
-    <text x="252" y="147" fontFamily="'DM Mono', monospace" fontSize="6"
-      fill="#C9B88A" opacity="0.28" letterSpacing="0.1em">CALCUTTA</text>
+    <text
+      x="16" y="240"
+      fontFamily="'Playfair Display', serif"
+      fontSize="72"
+      fill="#C9B88A"
+      opacity="0.04"
+      fontWeight="900"
+    >
+      1947
+    </text>
   </svg>
 )
-
-const svgStyle = {
-  position: 'absolute', inset: 0, width: '100%', height: '100%',
-}
 
 // ─── MapsPage ─────────────────────────────────────────────────────────────────
 const MapsPage = () => {
@@ -303,11 +291,12 @@ const MapCard = ({ map, index, hovered, onHover, onLeave }) => {
   const isWorker    = map.id === 'pakistan-worker'
   const isPartition = map.id === 'partition-1947'
 
-  const bgGradient = isWorker
-    ? 'radial-gradient(ellipse at 32% 65%, #130e05 0%, #080808 100%)'
+  // Card background colors
+  const cardBgColor = isWorker
+    ? '#0e0905'         // very dark warm brown — gold/labor feel
     : isPartition
-      ? 'radial-gradient(ellipse at 45% 45%, #110606 0%, #080808 100%)'
-      : 'radial-gradient(ellipse at 50% 50%, #0e0e0e 0%, #080808 100%)'
+      ? '#0e0505'       // very dark red — violence/partition feel
+      : '#0a0a0a'       // neutral dark
 
   const card = (
     <article
@@ -315,29 +304,37 @@ const MapCard = ({ map, index, hovered, onHover, onLeave }) => {
       onMouseLeave={onLeave}
       style={{
         ...S.card,
-        borderColor: hovered ? 'rgba(201,184,138,0.3)' : 'transparent',
+        background: cardBgColor,
+        borderColor: hovered
+          ? isWorker ? '#8B1A1A' : isPartition ? '#C9B88A' : '#333'
+          : '#161616',
         animation: `fadeUp 0.5s ease ${index * 0.1}s both`,
         cursor: isLive ? 'pointer' : 'default',
       }}
     >
-      {/* Visual panel */}
+      {/* Visual */}
       <div style={S.cardVisual}>
-        <div style={{ ...S.cardBg, background: bgGradient }}>
-          {isWorker    && <PakistanWorkerSVG/>}
-          {isPartition && <PartitionSVG/>}
-          {!isLive && (
-            <div style={S.comingSoon}>
-              <span style={S.comingSoonGlyph}>◎</span>
-            </div>
-          )}
-        </div>
+        {/* Solid bg */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: cardBgColor,
+        }}/>
 
-        {/* Bottom gradient — always present, stronger on hover */}
+        {/* The single graphic element */}
+        {isWorker    && <WorkerVisual/>}
+        {isPartition && <PartitionVisual/>}
+
+        {/* Coming soon placeholder */}
+        {!isLive && (
+          <div style={S.comingSoon}>
+            <span style={S.comingSoonGlyph}>◎</span>
+          </div>
+        )}
+
+        {/* Bottom fade */}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'linear-gradient(to top, rgba(8,8,8,0.85) 0%, transparent 55%)',
-          opacity: hovered ? 1 : 0.6,
-          transition: 'opacity 0.4s ease',
+          background: `linear-gradient(to top, ${cardBgColor} 0%, transparent 60%)`,
         }}/>
 
         {/* Tag */}
@@ -352,24 +349,20 @@ const MapCard = ({ map, index, hovered, onHover, onLeave }) => {
             <span style={S.liveLabel}>Live</span>
           </div>
         )}
-
-        {/* Sub-type label */}
-        {isLive && (
-          <div style={S.cardSubLabel}>
-            {isWorker ? 'Labor · Migration · 1947–2024' : 'Migration · Violence · 1947'}
-          </div>
-        )}
       </div>
 
       {/* Content */}
-      <div style={S.cardContent}>
+      <div style={{ ...S.cardContent, background: cardBgColor }}>
         <div style={S.cardMeta}>
           <span style={S.cardEyebrow}>{map.eyebrow}</span>
           <span style={S.dot}>·</span>
           <span style={S.cardEyebrow}>{map.year}</span>
         </div>
 
-        <h2 style={{ ...S.cardTitle, color: hovered && isLive ? '#C9B88A' : '#E8E0D0' }}>
+        <h2 style={{
+          ...S.cardTitle,
+          color: hovered && isLive ? '#C9B88A' : '#E8E0D0',
+        }}>
           {map.title}
         </h2>
 
@@ -380,7 +373,9 @@ const MapCard = ({ map, index, hovered, onHover, onLeave }) => {
             {map.stats.map(s => (
               <span key={s} style={{
                 ...S.statTag,
-                borderColor: hovered && isLive ? 'rgba(201,184,138,0.22)' : '#1a1a1a',
+                borderColor: hovered && isLive
+                  ? isPartition ? 'rgba(201,184,138,0.3)' : 'rgba(139,26,26,0.4)'
+                  : '#1e1e1e',
                 color: hovered && isLive ? '#C9B88A' : '#444',
                 transition: 'border-color 0.3s, color 0.3s',
               }}>
@@ -391,7 +386,7 @@ const MapCard = ({ map, index, hovered, onHover, onLeave }) => {
         )}
 
         {isLive && (
-          <div style={{ ...S.cardCta, color: hovered ? '#C9B88A' : '#2a2a2a' }}>
+          <div style={{ ...S.cardCta, color: hovered ? '#C9B88A' : '#2e2e2e' }}>
             <span>View Map</span>
             <span style={{
               display: 'inline-block',
@@ -491,29 +486,29 @@ const S = {
     gap: '1px', background: '#111',
   },
   card: {
-    border: '1px solid transparent',
-    background: '#080808',
+    border: '1px solid #161616',
     display: 'flex', flexDirection: 'column',
     transition: 'border-color 0.35s ease',
     position: 'relative',
   },
-  cardVisual: { position: 'relative', height: '260px', overflow: 'hidden' },
-  cardBg: { position: 'absolute', inset: 0, transition: 'background 0.4s ease' },
+  cardVisual: {
+    position: 'relative', height: '280px', overflow: 'hidden',
+  },
   comingSoon: {
     position: 'absolute', inset: 0,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
   comingSoonGlyph: {
-    fontSize: '36px', color: '#181818', fontFamily: "'DM Mono', monospace",
+    fontSize: '36px', color: '#1a1a1a', fontFamily: "'DM Mono', monospace",
   },
   cardTag: {
-    position: 'absolute', top: '18px', left: '18px',
+    position: 'absolute', top: '20px', left: '20px',
     fontFamily: "'DM Mono', monospace",
     fontSize: '8px', letterSpacing: '0.2em',
-    border: '1px solid', padding: '4px 9px', textTransform: 'uppercase',
+    border: '1px solid', padding: '4px 10px', textTransform: 'uppercase',
   },
   liveBadge: {
-    position: 'absolute', top: '18px', right: '18px',
+    position: 'absolute', top: '20px', right: '20px',
     display: 'flex', alignItems: 'center', gap: '5px',
   },
   liveDot: {
@@ -524,13 +519,8 @@ const S = {
     fontFamily: "'DM Mono', monospace", fontSize: '8px',
     letterSpacing: '0.15em', color: '#4ade80', textTransform: 'uppercase',
   },
-  cardSubLabel: {
-    position: 'absolute', bottom: '18px', left: '18px',
-    fontFamily: "'DM Mono', monospace", fontSize: '7.5px',
-    color: 'rgba(201,184,138,0.28)', letterSpacing: '0.16em', textTransform: 'uppercase',
-  },
   cardContent: {
-    padding: '26px 30px 30px',
+    padding: '24px 28px 28px',
     display: 'flex', flexDirection: 'column', gap: '13px', flex: 1,
   },
   cardMeta: { display: 'flex', alignItems: 'center', gap: '8px' },
@@ -541,7 +531,7 @@ const S = {
   dot: { color: '#1e1e1e', fontSize: '10px' },
   cardTitle: {
     fontFamily: "'Playfair Display', serif",
-    fontSize: 'clamp(22px, 2.5vw, 32px)', fontWeight: 700,
+    fontSize: 'clamp(22px, 2.5vw, 34px)', fontWeight: 700,
     lineHeight: 1.12, letterSpacing: '-0.01em', transition: 'color 0.3s ease',
   },
   cardDesc: {
