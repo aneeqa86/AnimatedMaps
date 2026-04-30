@@ -1,217 +1,101 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { MAPS_REGISTRY, LIVE_COUNT } from '@/data/mapsRegistry'
 
-const maps = [
-  {
-    id: 'pakistan-worker',
-    title: 'The Pakistani Worker',
-    eyebrow: 'Pakistan → Gulf States',
-    year: '1947 – 2024',
-    tag: 'Labor Day Edition',
-    tagColor: '#8B1A1A',
-    desc: 'From factory floors of Karachi to construction sites of Riyadh. 14 million workers, two threads, one human story.',
-    stats: ['14M Workers', '$35B Remittances', '77yr Arc'],
-    status: 'live',
-    path: '/maps/pakistan-worker',
-  },
-  {
-    id: 'partition-1947',
-    title: 'The Partition',
-    eyebrow: 'Punjab & Bengal',
-    year: '1947',
-    tag: 'Migration · Violence',
-    tagColor: '#C9B88A',
-    desc: 'The largest forced migration in human history. 14.5 million people. Two lines drawn in five weeks. Told through the poets who witnessed it.',
-    stats: ['14.5M Displaced', '1.3M Missing', '7 Chapters'],
-    status: 'live',
-    path: '/maps/partition-1947',
-  },
-  {
-    id: 'coming-soon-1',
-    title: 'Coming Soon',
-    eyebrow: 'Next Map',
-    year: '—',
-    tag: 'In Production',
-    tagColor: '#2a2a2a',
-    desc: 'The next animated map is in research and production.',
-    stats: [],
-    status: 'soon',
-    path: null,
-  },
-]
+// ─── MapCard ──────────────────────────────────────────────────────────────────
+const MapCard = ({ map, index, hovered, onHover, onLeave }) => {
+  const isLive = map.status === 'live'
+  const { Visual, cardBg, hoverBorderColor } = map
 
-// ─── Pakistan Worker: single bold arc, moving dot ─────────────────────────────
-const WorkerVisual = () => (
-  <svg
-    viewBox="0 0 500 260"
-    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
-  >
-    {/* Origin dot — Karachi */}
-    <circle cx="140" cy="168" r="5" fill="#C9B88A" opacity="0.95"/>
-    {/* Pulse ring */}
-    <circle cx="140" cy="168" r="5" fill="none" stroke="#C9B88A" strokeWidth="1">
-      <animate attributeName="r" values="8;24;8" dur="3s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.5;0;0.5" dur="3s" repeatCount="indefinite"/>
-    </circle>
-
-    {/* Single bold arc */}
-    <path
-      d="M 140 168 Q 310 30 390 118"
-      fill="none"
-      stroke="#C9B88A"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      opacity="0.7"
-    />
-
-    {/* Animated dot traveling the arc */}
-    <circle r="5" fill="#C9B88A" opacity="0.95">
-      <animateMotion
-        dur="3.5s"
-        repeatCount="indefinite"
-        path="M 140 168 Q 310 30 390 118"
-      />
-      <animate attributeName="opacity" values="0;1;1;0" dur="3.5s" repeatCount="indefinite"/>
-    </circle>
-
-    {/* Destination dot — Gulf */}
-    <circle cx="390" cy="118" r="5" fill="#C9B88A" opacity="0.85">
-      <animate attributeName="opacity" values="0.85;0.3;0.85" dur="2s" repeatCount="indefinite"/>
-    </circle>
-
-    {/* Origin label */}
-    <text
-      x="140" y="192"
-      textAnchor="middle"
-      fontFamily="'DM Mono', monospace"
-      fontSize="9"
-      fill="#C9B88A"
-      opacity="0.45"
-      letterSpacing="0.18em"
+  const card = (
+    <article
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+      style={{
+        ...S.card,
+        background: cardBg,
+        borderColor: hovered ? hoverBorderColor : '#161616',
+        animation: `fadeUp 0.5s ease ${index * 0.1}s both`,
+        cursor: isLive ? 'pointer' : 'default',
+      }}
     >
-      KARACHI
-    </text>
+      {/* Visual */}
+      <div style={S.cardVisual}>
+        <div style={{ position: 'absolute', inset: 0, background: cardBg }}/>
 
-    {/* Destination label */}
-    <text
-      x="390" y="142"
-      textAnchor="middle"
-      fontFamily="'DM Mono', monospace"
-      fontSize="9"
-      fill="#C9B88A"
-      opacity="0.45"
-      letterSpacing="0.18em"
-    >
-      GULF
-    </text>
-  </svg>
-)
+        {Visual && <Visual />}
 
-// ─── Partition: centered train, large, gold on dark red ───────────────────────
-const PartitionVisual = () => (
-  <svg
-    viewBox="0 0 500 260"
-    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
-  >
-    {/* Smoke */}
-    <ellipse cx="134" cy="62" rx="9" ry="6" fill="#C9B88A" opacity="0.12">
-      <animate attributeName="cy" values="62;50;62" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.12;0.04;0.12" dur="2s" repeatCount="indefinite"/>
-    </ellipse>
-    <ellipse cx="130" cy="52" rx="7" ry="5" fill="#C9B88A" opacity="0.08">
-      <animate attributeName="cy" values="52;40;52" dur="2.6s" repeatCount="indefinite"/>
-    </ellipse>
-    <ellipse cx="127" cy="43" rx="5" ry="4" fill="#C9B88A" opacity="0.05">
-      <animate attributeName="cy" values="43;30;43" dur="3.2s" repeatCount="indefinite"/>
-    </ellipse>
+        {!isLive && (
+          <div style={S.comingSoon}>
+            <span style={S.comingSoonGlyph}>◎</span>
+          </div>
+        )}
 
-    {/* Chimney */}
-    <rect x="128" y="72" width="10" height="18" rx="2" fill="#C9B88A" opacity="0.85"/>
+        {/* Bottom fade */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: `linear-gradient(to top, ${cardBg} 0%, transparent 60%)`,
+        }}/>
 
-    {/* Boiler dome */}
-    <ellipse cx="188" cy="82" rx="16" ry="10" fill="#C9B88A" opacity="0.8"/>
+        <div style={{ ...S.cardTag, borderColor: map.tagColor, color: map.tagColor }}>
+          {map.tag}
+        </div>
 
-    {/* Main boiler body */}
-    <rect x="80" y="88" width="180" height="44" rx="5" fill="#C9B88A" opacity="0.85"/>
+        {isLive && (
+          <div style={S.liveBadge}>
+            <span style={S.liveDot}/>
+            <span style={S.liveLabel}>Live</span>
+          </div>
+        )}
+      </div>
 
-    {/* Cab */}
-    <rect x="240" y="64" width="68" height="68" rx="4" fill="#C9B88A" opacity="0.85"/>
-    {/* Cab windows */}
-    <rect x="250" y="74" width="20" height="14" rx="2" fill="#1a0505" opacity="0.7"/>
-    <rect x="278" y="74" width="20" height="14" rx="2" fill="#1a0505" opacity="0.7"/>
-    {/* Cab door line */}
-    <line x1="240" y1="112" x2="308" y2="112" stroke="#1a0505" strokeWidth="1.5" opacity="0.4"/>
+      {/* Content */}
+      <div style={{ ...S.cardContent, background: cardBg }}>
+        <div style={S.cardMeta}>
+          <span style={S.cardEyebrow}>{map.eyebrow}</span>
+          <span style={S.dot}>·</span>
+          <span style={S.cardEyebrow}>{map.year}</span>
+        </div>
 
-    {/* Carriage 1 */}
-    <rect x="312" y="76" width="100" height="56" rx="4" fill="#C9B88A" opacity="0.72"/>
-    <rect x="322" y="86" width="16" height="12" rx="2" fill="#1a0505" opacity="0.5"/>
-    <rect x="346" y="86" width="16" height="12" rx="2" fill="#1a0505" opacity="0.5"/>
-    <rect x="370" y="86" width="16" height="12" rx="2" fill="#1a0505" opacity="0.5"/>
+        <h2 style={{ ...S.cardTitle, color: hovered && isLive ? '#C9B88A' : '#E8E0D0' }}>
+          {map.title}
+        </h2>
 
-    {/* Carriage 2 */}
-    <rect x="418" y="76" width="68" height="56" rx="4" fill="#C9B88A" opacity="0.55"/>
-    <rect x="428" y="86" width="14" height="12" rx="2" fill="#1a0505" opacity="0.5"/>
-    <rect x="450" y="86" width="14" height="12" rx="2" fill="#1a0505" opacity="0.5"/>
+        <p style={S.cardDesc}>{map.desc}</p>
 
-    {/* Coupling 1 */}
-    <rect x="306" y="112" width="10" height="5" rx="1" fill="#C9B88A" opacity="0.6"/>
-    {/* Coupling 2 */}
-    <rect x="412" y="112" width="10" height="5" rx="1" fill="#C9B88A" opacity="0.6"/>
+        {map.stats.length > 0 && (
+          <div style={S.statRow}>
+            {map.stats.map(s => (
+              <span key={s} style={{
+                ...S.statTag,
+                borderColor: hovered && isLive ? `${hoverBorderColor}55` : '#1e1e1e',
+                color: hovered && isLive ? '#C9B88A' : '#444',
+                transition: 'border-color 0.3s, color 0.3s',
+              }}>
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
 
-    {/* Wheels — locomotive */}
-    <circle cx="110" cy="136" r="20" fill="#1a0505" stroke="#C9B88A" strokeWidth="3"/>
-    <circle cx="110" cy="136" r="7" fill="#C9B88A" opacity="0.9"/>
-    <circle cx="158" cy="136" r="15" fill="#1a0505" stroke="#C9B88A" strokeWidth="2.5"/>
-    <circle cx="158" cy="136" r="5" fill="#C9B88A" opacity="0.9"/>
-    <circle cx="202" cy="136" r="15" fill="#1a0505" stroke="#C9B88A" strokeWidth="2.5"/>
-    <circle cx="202" cy="136" r="5" fill="#C9B88A" opacity="0.9"/>
+        {isLive && (
+          <div style={{ ...S.cardCta, color: hovered ? '#C9B88A' : '#2e2e2e' }}>
+            <span>View Map</span>
+            <span style={{
+              display: 'inline-block',
+              transform: hovered ? 'translateX(5px)' : 'translateX(0)',
+              transition: 'transform 0.3s ease',
+            }}>→</span>
+          </div>
+        )}
+      </div>
+    </article>
+  )
 
-    {/* Wheels — carriage 1 */}
-    <circle cx="335" cy="135" r="12" fill="#1a0505" stroke="#C9B88A" strokeWidth="2"/>
-    <circle cx="335" cy="135" r="4" fill="#C9B88A" opacity="0.8"/>
-    <circle cx="375" cy="135" r="12" fill="#1a0505" stroke="#C9B88A" strokeWidth="2"/>
-    <circle cx="375" cy="135" r="4" fill="#C9B88A" opacity="0.8"/>
-
-    {/* Wheels — carriage 2 */}
-    <circle cx="432" cy="135" r="11" fill="#1a0505" stroke="#C9B88A" strokeWidth="2"/>
-    <circle cx="432" cy="135" r="4" fill="#C9B88A" opacity="0.8"/>
-    <circle cx="468" cy="135" r="11" fill="#1a0505" stroke="#C9B88A" strokeWidth="2"/>
-    <circle cx="468" cy="135" r="4" fill="#C9B88A" opacity="0.8"/>
-
-    {/* Rail */}
-    <line x1="20" y1="156" x2="490" y2="156" stroke="#C9B88A" strokeWidth="2" opacity="0.25"/>
-    {/* Sleepers */}
-    {[30,70,110,150,190,230,270,310,350,390,430,470].map(x => (
-      <line key={x} x1={x} y1="150" x2={x} y2="162"
-        stroke="#C9B88A" strokeWidth="2" opacity="0.14"/>
-    ))}
-
-    {/* Bottom label */}
-    <text
-      x="250" y="200"
-      textAnchor="middle"
-      fontFamily="'DM Mono', monospace"
-      fontSize="9"
-      fill="#C9B88A"
-      opacity="0.35"
-      letterSpacing="0.22em"
-    >
-      LAHORE · AMRITSAR · 1947
-    </text>
-
-    {/* Ghost year */}
-    <text
-      x="16" y="240"
-      fontFamily="'Playfair Display', serif"
-      fontSize="72"
-      fill="#C9B88A"
-      opacity="0.04"
-      fontWeight="900"
-    >
-      1947
-    </text>
-  </svg>
-)
+  return isLive
+    ? <Link to={map.path} style={{ display: 'block', textDecoration: 'none' }}>{card}</Link>
+    : card
+}
 
 // ─── MapsPage ─────────────────────────────────────────────────────────────────
 const MapsPage = () => {
@@ -239,7 +123,7 @@ const MapsPage = () => {
         </div>
         <div style={S.headerMeta}>
           <div style={S.metaItem}>
-            <span style={S.metaNum}>02</span>
+            <span style={S.metaNum}>{String(LIVE_COUNT).padStart(2, '0')}</span>
             <span style={S.metaLabel}>Maps Live</span>
           </div>
           <div style={S.metaDivider}/>
@@ -257,9 +141,11 @@ const MapsPage = () => {
       </div>
 
       <section style={S.grid}>
-        {maps.map((map, i) => (
+        {MAPS_REGISTRY.map((map, i) => (
           <MapCard
-            key={map.id} map={map} index={i}
+            key={map.id}
+            map={map}
+            index={i}
             hovered={hovered === map.id}
             onHover={() => setHovered(map.id)}
             onLeave={() => setHovered(null)}
@@ -283,125 +169,6 @@ const MapsPage = () => {
       `}</style>
     </div>
   )
-}
-
-// ─── MapCard ──────────────────────────────────────────────────────────────────
-const MapCard = ({ map, index, hovered, onHover, onLeave }) => {
-  const isLive      = map.status === 'live'
-  const isWorker    = map.id === 'pakistan-worker'
-  const isPartition = map.id === 'partition-1947'
-
-  // Card background colors
-  const cardBgColor = isWorker
-    ? '#0e0905'         // very dark warm brown — gold/labor feel
-    : isPartition
-      ? '#0e0505'       // very dark red — violence/partition feel
-      : '#0a0a0a'       // neutral dark
-
-  const card = (
-    <article
-      onMouseEnter={onHover}
-      onMouseLeave={onLeave}
-      style={{
-        ...S.card,
-        background: cardBgColor,
-        borderColor: hovered
-          ? isWorker ? '#8B1A1A' : isPartition ? '#C9B88A' : '#333'
-          : '#161616',
-        animation: `fadeUp 0.5s ease ${index * 0.1}s both`,
-        cursor: isLive ? 'pointer' : 'default',
-      }}
-    >
-      {/* Visual */}
-      <div style={S.cardVisual}>
-        {/* Solid bg */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: cardBgColor,
-        }}/>
-
-        {/* The single graphic element */}
-        {isWorker    && <WorkerVisual/>}
-        {isPartition && <PartitionVisual/>}
-
-        {/* Coming soon placeholder */}
-        {!isLive && (
-          <div style={S.comingSoon}>
-            <span style={S.comingSoonGlyph}>◎</span>
-          </div>
-        )}
-
-        {/* Bottom fade */}
-        <div style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: `linear-gradient(to top, ${cardBgColor} 0%, transparent 60%)`,
-        }}/>
-
-        {/* Tag */}
-        <div style={{ ...S.cardTag, borderColor: map.tagColor, color: map.tagColor }}>
-          {map.tag}
-        </div>
-
-        {/* Live dot */}
-        {isLive && (
-          <div style={S.liveBadge}>
-            <span style={S.liveDot}/>
-            <span style={S.liveLabel}>Live</span>
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div style={{ ...S.cardContent, background: cardBgColor }}>
-        <div style={S.cardMeta}>
-          <span style={S.cardEyebrow}>{map.eyebrow}</span>
-          <span style={S.dot}>·</span>
-          <span style={S.cardEyebrow}>{map.year}</span>
-        </div>
-
-        <h2 style={{
-          ...S.cardTitle,
-          color: hovered && isLive ? '#C9B88A' : '#E8E0D0',
-        }}>
-          {map.title}
-        </h2>
-
-        <p style={S.cardDesc}>{map.desc}</p>
-
-        {map.stats.length > 0 && (
-          <div style={S.statRow}>
-            {map.stats.map(s => (
-              <span key={s} style={{
-                ...S.statTag,
-                borderColor: hovered && isLive
-                  ? isPartition ? 'rgba(201,184,138,0.3)' : 'rgba(139,26,26,0.4)'
-                  : '#1e1e1e',
-                color: hovered && isLive ? '#C9B88A' : '#444',
-                transition: 'border-color 0.3s, color 0.3s',
-              }}>
-                {s}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {isLive && (
-          <div style={{ ...S.cardCta, color: hovered ? '#C9B88A' : '#2e2e2e' }}>
-            <span>View Map</span>
-            <span style={{
-              display: 'inline-block',
-              transform: hovered ? 'translateX(5px)' : 'translateX(0)',
-              transition: 'transform 0.3s ease',
-            }}>→</span>
-          </div>
-        )}
-      </div>
-    </article>
-  )
-
-  return isLive
-    ? <Link to={map.path} style={{ display: 'block', textDecoration: 'none' }}>{card}</Link>
-    : card
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
