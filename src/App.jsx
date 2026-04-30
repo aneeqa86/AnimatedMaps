@@ -1,26 +1,21 @@
 import { Routes, Route } from 'react-router-dom'
-import { AuthProvider } from '@/context/AuthContext'
-import { ThemeProvider } from '@/context/ThemeContext'
 import MainLayout from '@/components/layout/MainLayout'
 import HomePage from '@/pages/HomePage'
 import AboutPage from '@/pages/AboutPage'
+import MapsPage from '@/pages/MapsPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
-export default function App() {
+const App = () => {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Routes>
-          {/* All routes inside MainLayout share the Navbar + Footer */}
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/about" element={<AboutPage />} />
-          </Route>
-
-          {/* Catch-all 404 */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </AuthProvider>
-    </ThemeProvider>
+    <Routes>
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/maps" element={<MapsPage />} />
+      </Route>
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   )
 }
+
+export default App
