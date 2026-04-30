@@ -5,6 +5,7 @@ import AboutPage from '@/pages/AboutPage'
 import MapsPage from '@/pages/MapsPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import PakistanWorker from '@/pages/maps/PakistanWorker'
+import PartitionMap from '@/pages/maps/PartitionMap'
 
 const App = () => {
   return (
@@ -14,6 +15,7 @@ const App = () => {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/maps" element={<MapsPage />} />
         <Route path="/maps/pakistan-worker" element={<PakistanWorker />} />
+        <Route path="/maps/partition-1947" element={<PartitionMap />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
