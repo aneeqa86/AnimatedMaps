@@ -7,6 +7,7 @@ import NotFoundPage from '@/pages/NotFoundPage'
 import PakistanWorker from '@/pages/maps/PakistanWorker'
 import PartitionMap from '@/pages/maps/PartitionMap'
 import PalestineMap from '@/pages/maps/PalestineMap'
+import CricketMap from '@/pages/maps/CricketMap'
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
         <Route path="/maps/pakistan-worker" element={<PakistanWorker />} />
         <Route path="/maps/partition-1947" element={<PartitionMap />} />
         <Route path="/maps/palestine-dastoor" element={<PalestineMap />} />
+        <Route path="/maps/cricket-empire" element={<CricketMap />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

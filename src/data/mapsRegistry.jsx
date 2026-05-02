@@ -161,6 +161,46 @@ const PalestineVisual = () => (
     <circle cx="127" cy="96" r="10" fill="none" stroke="#8B1A1A" strokeWidth="0.5" strokeOpacity="0.2" />
   </svg>
 );
+const CricketVisual = () => (
+  <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+    <defs>
+      <radialGradient id="cg1" cx="50%" cy="50%" r="70%">
+        <stop offset="0%" stopColor="#1a2e14" />
+        <stop offset="100%" stopColor="#0a0e08" />
+      </radialGradient>
+      <radialGradient id="cg2" cx="60%" cy="60%" r="50%">
+        <stop offset="0%" stopColor="#C9A84A" stopOpacity="0.15" />
+        <stop offset="100%" stopColor="#C9A84A" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+    <rect width="280" height="160" fill="url(#cg1)" />
+    <rect width="280" height="160" fill="url(#cg2)" />
+    {/* Key landmasses */}
+    <ellipse cx="132" cy="42" rx="8" ry="7" fill="#8B1A1A" opacity="0.7" />
+    <ellipse cx="188" cy="72" rx="12" ry="14" fill="#C9A84A" opacity="0.75" />
+    <ellipse cx="220" cy="100" rx="11" ry="9" fill="#6a8a5a" opacity="0.5" />
+    <ellipse cx="72" cy="72" rx="5" ry="3" fill="#C9A84A" opacity="0.55" />
+    <ellipse cx="148" cy="108" rx="7" ry="6" fill="#6a8a5a" opacity="0.4" />
+    {/* Empire spread lines */}
+    <line x1="132" y1="42" x2="188" y2="72" stroke="#8B1A1A" strokeWidth="0.8" strokeOpacity="0.6" strokeDasharray="3,2" />
+    <line x1="132" y1="42" x2="220" y2="100" stroke="#8B1A1A" strokeWidth="0.8" strokeOpacity="0.5" strokeDasharray="3,2" />
+    <line x1="132" y1="42" x2="72" y2="72" stroke="#8B1A1A" strokeWidth="0.8" strokeOpacity="0.5" strokeDasharray="3,2" />
+    <line x1="132" y1="42" x2="148" y2="108" stroke="#8B1A1A" strokeWidth="0.8" strokeOpacity="0.45" strokeDasharray="3,2" />
+    {/* Reverse flows to India */}
+    <line x1="220" y1="100" x2="188" y2="72" stroke="#C9A84A" strokeWidth="1" strokeOpacity="0.7" strokeDasharray="2,3" />
+    <line x1="72" y1="72" x2="188" y2="72" stroke="#C9A84A" strokeWidth="1" strokeOpacity="0.6" strokeDasharray="2,3" />
+    <line x1="148" y1="108" x2="188" y2="72" stroke="#C9A84A" strokeWidth="0.8" strokeOpacity="0.55" strokeDasharray="2,3" />
+    {/* Cricket pitch */}
+    <rect x="183" y="67" width="4" height="12" rx="1" fill="none" stroke="#C9A84A" strokeWidth="0.8" strokeOpacity="0.8" />
+    {/* Markers */}
+    <circle cx="132" cy="42" r="2.5" fill="#8B1A1A" opacity="0.9" />
+    <circle cx="188" cy="72" r="4" fill="#C9A84A" opacity="0.9" />
+    {/* Labels */}
+    <text x="14" y="18" fontFamily="DM Mono, monospace" fontSize="9" fill="#3a4a2a" opacity="0.7">1700s</text>
+    <text x="220" y="150" fontFamily="DM Mono, monospace" fontSize="9" fill="#C9A84A" opacity="0.8">TODAY</text>
+    <text x="252" y="20" fontSize="14">🏏</text>
+  </svg>
+);
 
 // ─── THE REGISTRY ─────────────────────────────────────────────────────────────
 // To add a new map:
@@ -218,6 +258,25 @@ export const MAPS_REGISTRY = [
     status: 'live',
     path: '/maps/palestine-dastoor',
     Visual: PalestineVisual,
+  },
+  {
+    id: 'cricket-empire',
+    title: "Cricket: The Empire's Game",
+    eyebrow: 'Sport · Empire · Resistance',
+    year: '1700s–Today',
+    tag: 'SPORT',
+    tagColor: '#2D5A1B',
+    cardBg: 'linear-gradient(135deg, #0a0e08 0%, #1a2e14 50%, #0a0e08 100%)',
+    hoverBorderColor: '#2D5A1B',
+    desc: "Cricket was England's gift to its colonies. Then the colonies took it back. Watch the centre of cricket power shift from Lord's to Mumbai over 300 years.",
+    stats: [
+      { value: '12', label: 'Test nations' },
+      { value: '1983', label: 'The turning point' },
+      { value: '₹', label: 'IPL changed everything' },
+    ],
+    status: 'live',
+    path: '/maps/cricket-empire',
+    Visual: CricketVisual,
   },
 ]
 
