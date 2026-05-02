@@ -93,9 +93,12 @@ const HomePage = () => {
                 </svg>
               </div>
               <div style={styles.mapRowTags}>
-                {(map.stats || []).slice(0, 2).map(s => (
-                  <span key={s} style={styles.tag}>{s}</span>
-                ))}
+                {(map.stats || []).slice(0, 2).map((s, si) => {
+                  const label = typeof s === 'object' ? `${s.value} ${s.label}` : s
+                  return (
+                    <span key={si} style={styles.tag}>{label}</span>
+                  )
+                })}
               </div>
               <span style={styles.mapRowArrow}>→</span>
             </div>

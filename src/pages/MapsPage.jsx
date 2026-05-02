@@ -63,18 +63,21 @@ const MapCard = ({ map, index, hovered, onHover, onLeave }) => {
 
         <p style={S.cardDesc}>{map.desc}</p>
 
-        {map.stats.length > 0 && (
+        {map.stats && map.stats.length > 0 && (
           <div style={S.statRow}>
-            {map.stats.map(s => (
-              <span key={s} style={{
-                ...S.statTag,
-                borderColor: hovered && isLive ? `${hoverBorderColor}55` : '#1e1e1e',
-                color: hovered && isLive ? '#C9B88A' : '#444',
-                transition: 'border-color 0.3s, color 0.3s',
-              }}>
-                {s}
-              </span>
-            ))}
+            {map.stats.map((s, si) => {
+              const label = typeof s === 'object' ? `${s.value} ${s.label}` : s
+              return (
+                <span key={si} style={{
+                  ...S.statTag,
+                  borderColor: hovered && isLive ? `${hoverBorderColor}55` : '#1e1e1e',
+                  color: hovered && isLive ? '#C9B88A' : '#444',
+                  transition: 'border-color 0.3s, color 0.3s',
+                }}>
+                  {label}
+                </span>
+              )
+            })}
           </div>
         )}
 
