@@ -1,7 +1,6 @@
 import React from 'react'
 
 // ─── Visual Components ────────────────────────────────────────────────────────
-// Each map defines its own SVG visual here. Add a new one when adding a map.
 
 const WorkerVisual = () => (
   <svg viewBox="0 0 500 260" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
@@ -81,86 +80,51 @@ const PalestineVisual = () => (
         <stop offset="0%" stopColor="#4A5C3A" stopOpacity="0.4" />
         <stop offset="100%" stopColor="#0E0D0B" stopOpacity="0" />
       </radialGradient>
-      <linearGradient id="palFade" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stopColor="#4A5C3A" stopOpacity="0.8" />
-        <stop offset="100%" stopColor="#8B1A1A" stopOpacity="0.6" />
-      </linearGradient>
     </defs>
- 
-    {/* bg */}
     <rect width="280" height="160" fill="#0E0D0B" />
     <rect width="280" height="160" fill="url(#palGlow)" />
- 
-    {/* grid */}
     {[0,1,2,3,4,5,6].map(i => (
       <line key={`h${i}`} x1="0" y1={i*28} x2="280" y2={i*28} stroke="rgba(212,197,160,0.04)" strokeWidth="0.5" />
     ))}
     {[0,1,2,3,4,5,6,7,8,9].map(i => (
       <line key={`v${i}`} x1={i*32} y1="0" x2={i*32} y2="160" stroke="rgba(212,197,160,0.04)" strokeWidth="0.5" />
     ))}
- 
-    {/* Palestine silhouette (simplified West Bank + Gaza) */}
-    {/* West Bank */}
     <ellipse cx="145" cy="72" rx="18" ry="30" fill="#4A5C3A" fillOpacity="0.7" />
-    {/* Gaza strip */}
     <rect x="118" y="90" width="9" height="28" rx="2" fill="#8B1A1A" fillOpacity="0.75" />
- 
-    {/* border glow */}
     <ellipse cx="145" cy="72" rx="18" ry="30" fill="none" stroke="#6B7F55" strokeWidth="1" strokeOpacity="0.8" />
- 
-    {/* displacement flow lines — outward from center */}
     {[
-      { x1: 150, y1: 75, x2: 195, y2: 68 }, // to Jordan
-      { x1: 148, y1: 55, x2: 152, y2: 28 }, // to Lebanon
-      { x1: 118, y1: 95, x2: 82,  y2: 90 }, // into Gaza
+      { x1: 150, y1: 75, x2: 195, y2: 68 },
+      { x1: 148, y1: 55, x2: 152, y2: 28 },
+      { x1: 118, y1: 95, x2: 82,  y2: 90 },
     ].map((l, i) => (
       <g key={i}>
         <line {...l} stroke="#8B1A1A" strokeWidth="1" strokeOpacity="0.4" strokeDasharray="3 3" />
         <line {...l} stroke="#C9A84A" strokeWidth="1.5" strokeOpacity="0.6" strokeDasharray="2 4" />
       </g>
     ))}
- 
-    {/* city dots */}
     <circle cx="145" cy="76" r="2.5" fill="#D4C5A0" fillOpacity="0.9" />
     <circle cx="127" cy="96" r="2" fill="#8B1A1A" fillOpacity="0.9" />
     <circle cx="143" cy="52" r="1.5" fill="#C9A84A" fillOpacity="0.8" />
- 
-    {/* mosque dome icon — Jerusalem */}
     <g transform="translate(136, 62)">
       <ellipse cx="0" cy="0" rx="4" ry="3" fill="#C9A84A" fillOpacity="0.7" />
       <rect x="-2.5" y="0" width="5" height="4" fill="#C9A84A" fillOpacity="0.5" />
       <line x1="0" y1="-5" x2="0" y2="-3" stroke="#C9A84A" strokeWidth="0.8" strokeOpacity="0.8" />
     </g>
- 
-    {/* poem text */}
     <text x="22" y="32" fontFamily="serif" fontSize="9" fill="#D4C5A0" fillOpacity="0.6" direction="rtl">میں نہیں مانتا</text>
     <text x="22" y="44" fontFamily="serif" fontSize="7" fill="#6B7F55" fillOpacity="0.7" fontStyle="italic">I do not accept this</text>
- 
-    {/* olive branch */}
-    <g transform="translate(220, 48)" opacity="0.5">
-      <path d="M0,20 Q-8,10 -4,0" stroke="#4A5C3A" strokeWidth="1.5" fill="none" />
-      <ellipse cx="-6" cy="5" rx="4" ry="2.5" fill="#4A5C3A" transform="rotate(-30,-6,5)" />
-      <ellipse cx="-2" cy="12" rx="3.5" ry="2" fill="#4A5C3A" transform="rotate(-15,-2,12)" />
-      <ellipse cx="-1" cy="18" rx="3" ry="2" fill="#4A5C3A" transform="rotate(10,-1,18)" />
-    </g>
- 
-    {/* territory bar */}
     <text x="22" y="128" fontFamily="monospace" fontSize="7" fill="#4a4840" letterSpacing="1">LAND REMAINING</text>
     <rect x="22" y="133" width="100" height="3" fill="#1c1b18" rx="1" />
     <rect x="22" y="133" width="13" height="3" fill="#8B1A1A" rx="1" />
     <text x="138" y="137" fontFamily="monospace" fontSize="7" fill="#8B1A1A">13%</text>
- 
-    {/* year labels */}
     <text x="22" y="150" fontFamily="monospace" fontSize="7" fill="#333">1917</text>
     <text x="60" y="150" fontFamily="monospace" fontSize="7" fill="#333">1948</text>
     <text x="100" y="150" fontFamily="monospace" fontSize="7" fill="#333">1967</text>
     <text x="140" y="150" fontFamily="monospace" fontSize="7" fill="#4a4840">TODAY</text>
- 
-    {/* pulse ring on Gaza */}
     <circle cx="127" cy="96" r="6" fill="none" stroke="#8B1A1A" strokeWidth="0.8" strokeOpacity="0.4" />
     <circle cx="127" cy="96" r="10" fill="none" stroke="#8B1A1A" strokeWidth="0.5" strokeOpacity="0.2" />
   </svg>
-);
+)
+
 const CricketVisual = () => (
   <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
     <defs>
@@ -175,40 +139,106 @@ const CricketVisual = () => (
     </defs>
     <rect width="280" height="160" fill="url(#cg1)" />
     <rect width="280" height="160" fill="url(#cg2)" />
-    {/* Key landmasses */}
     <ellipse cx="132" cy="42" rx="8" ry="7" fill="#8B1A1A" opacity="0.7" />
     <ellipse cx="188" cy="72" rx="12" ry="14" fill="#C9A84A" opacity="0.75" />
     <ellipse cx="220" cy="100" rx="11" ry="9" fill="#6a8a5a" opacity="0.5" />
     <ellipse cx="72" cy="72" rx="5" ry="3" fill="#C9A84A" opacity="0.55" />
     <ellipse cx="148" cy="108" rx="7" ry="6" fill="#6a8a5a" opacity="0.4" />
-    {/* Empire spread lines */}
     <line x1="132" y1="42" x2="188" y2="72" stroke="#8B1A1A" strokeWidth="0.8" strokeOpacity="0.6" strokeDasharray="3,2" />
     <line x1="132" y1="42" x2="220" y2="100" stroke="#8B1A1A" strokeWidth="0.8" strokeOpacity="0.5" strokeDasharray="3,2" />
     <line x1="132" y1="42" x2="72" y2="72" stroke="#8B1A1A" strokeWidth="0.8" strokeOpacity="0.5" strokeDasharray="3,2" />
     <line x1="132" y1="42" x2="148" y2="108" stroke="#8B1A1A" strokeWidth="0.8" strokeOpacity="0.45" strokeDasharray="3,2" />
-    {/* Reverse flows to India */}
     <line x1="220" y1="100" x2="188" y2="72" stroke="#C9A84A" strokeWidth="1" strokeOpacity="0.7" strokeDasharray="2,3" />
     <line x1="72" y1="72" x2="188" y2="72" stroke="#C9A84A" strokeWidth="1" strokeOpacity="0.6" strokeDasharray="2,3" />
     <line x1="148" y1="108" x2="188" y2="72" stroke="#C9A84A" strokeWidth="0.8" strokeOpacity="0.55" strokeDasharray="2,3" />
-    {/* Cricket pitch */}
     <rect x="183" y="67" width="4" height="12" rx="1" fill="none" stroke="#C9A84A" strokeWidth="0.8" strokeOpacity="0.8" />
-    {/* Markers */}
     <circle cx="132" cy="42" r="2.5" fill="#8B1A1A" opacity="0.9" />
     <circle cx="188" cy="72" r="4" fill="#C9A84A" opacity="0.9" />
-    {/* Labels */}
     <text x="14" y="18" fontFamily="DM Mono, monospace" fontSize="9" fill="#3a4a2a" opacity="0.7">1700s</text>
     <text x="220" y="150" fontFamily="DM Mono, monospace" fontSize="9" fill="#C9A84A" opacity="0.8">TODAY</text>
     <text x="252" y="20" fontSize="14">🏏</text>
   </svg>
-);
+)
+
+// ─── Hajj Visual ──────────────────────────────────────────────────────────────
+const HajjVisual = () => (
+  <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+    <defs>
+      <radialGradient id="hajjGlow" cx="58%" cy="55%" r="40%">
+        <stop offset="0%" stopColor="#C4935A" stopOpacity="0.35" />
+        <stop offset="100%" stopColor="#C4935A" stopOpacity="0" />
+      </radialGradient>
+      <radialGradient id="hajjBg" cx="50%" cy="50%" r="70%">
+        <stop offset="0%" stopColor="#1C1306" />
+        <stop offset="100%" stopColor="#0C0A06" />
+      </radialGradient>
+      <radialGradient id="meccaGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#C9B88A" stopOpacity="0.5" />
+        <stop offset="100%" stopColor="#C9B88A" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+
+    {/* Background */}
+    <rect width="280" height="160" fill="url(#hajjBg)" />
+    <rect width="280" height="160" fill="url(#hajjGlow)" />
+
+    {/* Grid */}
+    {[0,1,2,3,4,5].map(i => (
+      <line key={`h${i}`} x1="0" y1={i*32} x2="280" y2={i*32} stroke="rgba(201,184,138,0.04)" strokeWidth="0.5"/>
+    ))}
+    {[0,1,2,3,4,5,6,7].map(i => (
+      <line key={`v${i}`} x1={i*40} y1="0" x2={i*40} y2="160" stroke="rgba(201,184,138,0.04)" strokeWidth="0.5"/>
+    ))}
+
+    {/* Mecca glow */}
+    <circle cx="162" cy="86" r="22" fill="url(#meccaGlow)" />
+    <circle cx="162" cy="86" r="6" fill="#C9B88A" opacity="0.9"/>
+    <circle cx="162" cy="86" r="6" fill="none" stroke="#C9B88A" strokeWidth="1">
+      <animate attributeName="r" values="8;18;8" dur="2.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;0;0.5" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+
+    {/* Ancient camel routes — converging lines */}
+    {/* Khorasan (from right) */}
+    <path d="M 270 28 Q 220 50 162 86" fill="none" stroke="#C4935A" strokeWidth="1.2" strokeOpacity="0.55" strokeDasharray="3,3"/>
+    {/* Saharan (from left) */}
+    <path d="M 10 60 Q 80 68 162 86" fill="none" stroke="#C4935A" strokeWidth="1.2" strokeOpacity="0.5" strokeDasharray="3,3"/>
+    {/* Nile */}
+    <path d="M 100 10 Q 130 48 162 86" fill="none" stroke="#C4935A" strokeWidth="1" strokeOpacity="0.4" strokeDasharray="3,3"/>
+    {/* Sea — from bottom right */}
+    <path d="M 250 140 Q 210 118 162 86" fill="none" stroke="#3A7A8C" strokeWidth="1.2" strokeOpacity="0.55" strokeDasharray="2,4"/>
+    {/* Air — sharp from bottom-left */}
+    <path d="M 30 140 Q 100 110 162 86" fill="none" stroke="#E8DFC0" strokeWidth="0.8" strokeOpacity="0.4" />
+
+    {/* Animated pilgrims on routes */}
+    <circle r="2.5" fill="#C4935A" opacity="0.9">
+      <animateMotion dur="4s" repeatCount="indefinite" path="M 270 28 Q 220 50 162 86"/>
+      <animate attributeName="opacity" values="0;0.9;0.9;0" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="2" fill="#C4935A" opacity="0.8">
+      <animateMotion dur="5s" repeatCount="indefinite" path="M 10 60 Q 80 68 162 86"/>
+      <animate attributeName="opacity" values="0;0.8;0.8;0" dur="5s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="2" fill="#3A7A8C" opacity="0.85">
+      <animateMotion dur="4.5s" repeatCount="indefinite" path="M 250 140 Q 210 118 162 86"/>
+      <animate attributeName="opacity" values="0;0.85;0.85;0" dur="4.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="1.5" fill="#E8DFC0" opacity="0.7">
+      <animateMotion dur="2.5s" repeatCount="indefinite" path="M 30 140 Q 100 110 162 86"/>
+      <animate attributeName="opacity" values="0;0.7;0.7;0" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+
+    {/* Arabic text */}
+    <text x="140" y="28" textAnchor="middle" fontFamily="serif" fontSize="11"
+      fill="#C9B88A" opacity="0.65" direction="rtl">لَبَّيْكَ</text>
+
+    {/* Labels */}
+    <text x="14" y="152" fontFamily="DM Mono, monospace" fontSize="7" fill="#6a5a3a" letterSpacing="1">ANCIENT</text>
+    <text x="220" y="152" fontFamily="DM Mono, monospace" fontSize="7" fill="#C9B88A" letterSpacing="1" opacity="0.7">MECCA</text>
+  </svg>
+)
 
 // ─── THE REGISTRY ─────────────────────────────────────────────────────────────
-// To add a new map:
-//   1. Create your Visual component above
-//   2. Add an entry to this array — set status: 'live' when ready
-//   3. Add the route in App.jsx
-//   MapsPage and HomePage will update automatically.
-
 export const MAPS_REGISTRY = [
   {
     id: 'pakistan-worker',
@@ -221,7 +251,7 @@ export const MAPS_REGISTRY = [
     hoverBorderColor: '#8B1A1A',
     desc: 'From factory floors of Karachi to construction sites of Riyadh. 14 million workers, two threads, one human story.',
     stats: ['14M Workers', '$35B Remittances', '77yr Arc'],
-    status: 'live',           // 'live' | 'soon'
+    status: 'live',
     path: '/maps/pakistan-worker',
     Visual: WorkerVisual,
   },
@@ -249,7 +279,7 @@ export const MAPS_REGISTRY = [
     tagColor: '#4A5C3A',
     cardBg: 'linear-gradient(135deg, #0E0D0B 0%, #1a1e15 50%, #0E0D0B 100%)',
     hoverBorderColor: '#4A5C3A',
-    desc: 'Watch Palestinian land disappear across a century — narrated chapter by chapter through Habib Jalib\'s poem دستور. From the Balfour Declaration to Gaza 2023.',
+    desc: "Watch Palestinian land disappear across a century — narrated chapter by chapter through Habib Jalib's poem دستور. From the Balfour Declaration to Gaza 2023.",
     stats: [
       { value: '530', label: 'Villages Destroyed' },
       { value: '7M+', label: 'In Diaspora' },
@@ -278,8 +308,26 @@ export const MAPS_REGISTRY = [
     path: '/maps/cricket-empire',
     Visual: CricketVisual,
   },
+  {
+    id: 'hajj-roads',
+    title: 'The Eternal Road to Mecca',
+    eyebrow: 'Ancient Routes · Sea Paths · Air Corridors',
+    year: '750 CE – Today',
+    tag: 'PILGRIMAGE',
+    tagColor: '#C4935A',
+    cardBg: 'linear-gradient(135deg, #0C0A06 0%, #1C1306 50%, #0C0A06 100%)',
+    hoverBorderColor: '#C4935A',
+    desc: 'Fourteen centuries of devotion mapped. Camel footprints across the Sahara. Dhow wakes across the Indian Ocean. Then the air age collapsed months into hours. One destination. A thousand roads.',
+    stats: [
+      { value: '1,400', label: 'Years of Pilgrimage' },
+      { value: '2.5M',  label: 'Pilgrims in 2024' },
+      { value: '180',   label: 'Countries Today' },
+    ],
+    status: 'live',
+    path: '/maps/hajj-roads',
+    Visual: HajjVisual,
+  },
 ]
 
-// Derived counts — used in MapsPage header, HomePage strip, etc.
-export const LIVE_COUNT   = MAPS_REGISTRY.filter(m => m.status === 'live').length
-export const TOTAL_COUNT  = MAPS_REGISTRY.length
+export const LIVE_COUNT  = MAPS_REGISTRY.filter(m => m.status === 'live').length
+export const TOTAL_COUNT = MAPS_REGISTRY.length
