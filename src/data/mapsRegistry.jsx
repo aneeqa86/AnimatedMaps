@@ -238,6 +238,93 @@ const HajjVisual = () => (
   </svg>
 )
 
+const TurtleVisual = () => (
+  <svg viewBox="0 0 280 180" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+    <defs>
+      <radialGradient id="turtleOcean" cx="50%" cy="50%" r="60%">
+        <stop offset="0%" stopColor="#041208" />
+        <stop offset="100%" stopColor="#020804" />
+      </radialGradient>
+      <radialGradient id="turtleGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#4ade80" stopOpacity="0.3" />
+        <stop offset="100%" stopColor="#4ade80" stopOpacity="0" />
+      </radialGradient>
+      <filter id="turtleBlur">
+        <feGaussianBlur stdDeviation="2.5" />
+      </filter>
+    </defs>
+ 
+    {/* Deep ocean background */}
+    <rect width="280" height="180" fill="url(#turtleOcean)" />
+ 
+    {/* Subtle grid */}
+    {[0,40,80,120,160,200,240,280].map(x => (
+      <line key={`v${x}`} x1={x} y1="0" x2={x} y2="180" stroke="#4ade8008" strokeWidth="0.5" />
+    ))}
+    {[0,36,72,108,144,180].map(y => (
+      <line key={`h${y}`} x1="0" y1={y} x2="280" y2={y} stroke="#4ade8008" strokeWidth="0.5" />
+    ))}
+ 
+    {/* Globe circle */}
+    <circle cx="140" cy="90" r="72" fill="#061409" stroke="#1a3a2022" strokeWidth="0.8" />
+    <circle cx="140" cy="90" r="72" fill="url(#turtleGlow)" />
+ 
+    {/* Land masses — stylized */}
+    {/* Americas */}
+    <path d="M95 52 Q90 65 88 80 Q87 95 92 108 Q88 95 85 82 Q82 68 88 55 Z" fill="#0f2a14" opacity="0.9" />
+    {/* Africa/Europe */}
+    <path d="M148 50 Q155 62 153 78 Q151 92 148 104 Q144 92 143 78 Q142 63 145 52 Z" fill="#0f2a14" opacity="0.9" />
+    {/* Australia */}
+    <path d="M183 95 Q190 88 196 93 Q200 100 195 108 Q188 112 182 106 Q178 100 183 95 Z" fill="#0f2a14" opacity="0.9" />
+    {/* Asia */}
+    <path d="M158 45 Q172 48 180 55 Q185 65 178 72 Q170 68 162 62 Q157 55 158 45 Z" fill="#0f2a14" opacity="0.9" />
+ 
+    {/* Pacific Leatherback route — bright emerald */}
+    <path d="M178 78 Q190 70 200 65 Q215 60 210 72 Q200 80 188 82 Q178 84 178 78"
+      stroke="#4ade80" strokeWidth="1.5" fill="none" opacity="0.9" strokeDasharray="3,3" />
+    {/* Atlantic Loggerhead — medium green */}
+    <path d="M100 82 Q110 72 125 68 Q138 65 145 70 Q138 75 125 78 Q112 80 100 82"
+      stroke="#86efac" strokeWidth="1.5" fill="none" opacity="0.8" strokeDasharray="3,3" />
+    {/* Green turtle — teal */}
+    <path d="M108 100 Q120 98 128 96 Q133 95 134 98"
+      stroke="#34d399" strokeWidth="1.5" fill="none" opacity="0.8" strokeDasharray="2,3" />
+ 
+    {/* Glow behind routes */}
+    <path d="M178 78 Q190 70 200 65" stroke="#4ade80" strokeWidth="5" fill="none" opacity="0.15" filter="url(#turtleBlur)" />
+    <path d="M100 82 Q110 72 125 68 Q138 65 145 70" stroke="#86efac" strokeWidth="5" fill="none" opacity="0.12" filter="url(#turtleBlur)" />
+ 
+    {/* Nesting beach dots */}
+    <circle cx="101" cy="82" r="3" fill="#4ade80" opacity="0.9" />
+    <circle cx="101" cy="82" r="6" fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.4" />
+    <circle cx="134" cy="97" r="2.5" fill="#34d399" opacity="0.9" />
+    <circle cx="134" cy="97" r="5" fill="none" stroke="#34d399" strokeWidth="0.8" opacity="0.4" />
+    <circle cx="193" cy="101" r="2.5" fill="#059669" opacity="0.9" />
+    <circle cx="197" cy="80" r="2.5" fill="#4ade80" opacity="0.8" />
+ 
+    {/* Turtle silhouette — center */}
+    <g transform="translate(130, 82) scale(0.9)">
+      {/* Shell */}
+      <ellipse cx="10" cy="8" rx="9" ry="7" fill="#16a34a" opacity="0.9" />
+      <ellipse cx="10" cy="8" rx="7" ry="5" fill="none" stroke="#4ade80" strokeWidth="0.6" opacity="0.6" />
+      {/* Head */}
+      <ellipse cx="18.5" cy="7" rx="3" ry="2.5" fill="#15803d" opacity="0.9" />
+      {/* Flippers */}
+      <path d="M5 3 Q1 0 0 3 Q2 5 5 4" fill="#15803d" opacity="0.8" />
+      <path d="M5 13 Q1 16 0 13 Q2 11 5 12" fill="#15803d" opacity="0.8" />
+      <path d="M15 2 Q17 -1 19 1 Q18 4 15 4" fill="#15803d" opacity="0.7" />
+      <path d="M15 14 Q17 17 19 15 Q18 12 15 12" fill="#15803d" opacity="0.7" />
+    </g>
+ 
+    {/* Glowing center radial */}
+    <circle cx="140" cy="90" r="72" fill="none" stroke="#4ade8015" strokeWidth="1" />
+ 
+    {/* World Turtle Day label */}
+    <text x="140" y="168" textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="7" fill="#4ade8066" letterSpacing="2">
+      WORLD TURTLE DAY · MAY 23
+    </text>
+  </svg>
+);
+
 // ─── THE REGISTRY ─────────────────────────────────────────────────────────────
 export const MAPS_REGISTRY = [
   {
@@ -326,6 +413,25 @@ export const MAPS_REGISTRY = [
     status: 'live',
     path: '/maps/hajj-roads',
     Visual: HajjVisual,
+  },
+  {
+    id: 'turtle-day',
+    title: 'The Ancient Navigators',
+    eyebrow: 'Ocean · Migration · Conservation',
+    year: '100M yrs → Today',
+    tag: 'WORLD TURTLE DAY',
+    tagColor: '#4ade80',
+    cardBg: 'linear-gradient(135deg, #020804 0%, #061409 50%, #020c05 100%)',
+    hoverBorderColor: '#4ade80',
+    desc: 'Sea turtles have navigated the world\'s oceans for 100 million years. They cross entire ocean basins, find 7-mile islands in 40 million square miles of sea, and return to the exact beach where they were born. Six of seven species now face extinction.',
+    stats: [
+      { value: '100M', label: 'years of navigation' },
+      { value: '6,000', label: 'miles per journey' },
+      { value: 'May 23', label: 'World Turtle Day' },
+    ],
+    status: 'live',
+    path: '/maps/turtle-day',
+    Visual: TurtleVisual,
   },
 ]
 
