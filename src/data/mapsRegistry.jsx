@@ -160,7 +160,6 @@ const CricketVisual = () => (
   </svg>
 )
 
-// ─── Hajj Visual ──────────────────────────────────────────────────────────────
 const HajjVisual = () => (
   <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
     <defs>
@@ -177,40 +176,25 @@ const HajjVisual = () => (
         <stop offset="100%" stopColor="#C9B88A" stopOpacity="0" />
       </radialGradient>
     </defs>
-
-    {/* Background */}
     <rect width="280" height="160" fill="url(#hajjBg)" />
     <rect width="280" height="160" fill="url(#hajjGlow)" />
-
-    {/* Grid */}
     {[0,1,2,3,4,5].map(i => (
       <line key={`h${i}`} x1="0" y1={i*32} x2="280" y2={i*32} stroke="rgba(201,184,138,0.04)" strokeWidth="0.5"/>
     ))}
     {[0,1,2,3,4,5,6,7].map(i => (
       <line key={`v${i}`} x1={i*40} y1="0" x2={i*40} y2="160" stroke="rgba(201,184,138,0.04)" strokeWidth="0.5"/>
     ))}
-
-    {/* Mecca glow */}
     <circle cx="162" cy="86" r="22" fill="url(#meccaGlow)" />
     <circle cx="162" cy="86" r="6" fill="#C9B88A" opacity="0.9"/>
     <circle cx="162" cy="86" r="6" fill="none" stroke="#C9B88A" strokeWidth="1">
       <animate attributeName="r" values="8;18;8" dur="2.5s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values="0.5;0;0.5" dur="2.5s" repeatCount="indefinite"/>
     </circle>
-
-    {/* Ancient camel routes — converging lines */}
-    {/* Khorasan (from right) */}
     <path d="M 270 28 Q 220 50 162 86" fill="none" stroke="#C4935A" strokeWidth="1.2" strokeOpacity="0.55" strokeDasharray="3,3"/>
-    {/* Saharan (from left) */}
     <path d="M 10 60 Q 80 68 162 86" fill="none" stroke="#C4935A" strokeWidth="1.2" strokeOpacity="0.5" strokeDasharray="3,3"/>
-    {/* Nile */}
     <path d="M 100 10 Q 130 48 162 86" fill="none" stroke="#C4935A" strokeWidth="1" strokeOpacity="0.4" strokeDasharray="3,3"/>
-    {/* Sea — from bottom right */}
     <path d="M 250 140 Q 210 118 162 86" fill="none" stroke="#3A7A8C" strokeWidth="1.2" strokeOpacity="0.55" strokeDasharray="2,4"/>
-    {/* Air — sharp from bottom-left */}
     <path d="M 30 140 Q 100 110 162 86" fill="none" stroke="#E8DFC0" strokeWidth="0.8" strokeOpacity="0.4" />
-
-    {/* Animated pilgrims on routes */}
     <circle r="2.5" fill="#C4935A" opacity="0.9">
       <animateMotion dur="4s" repeatCount="indefinite" path="M 270 28 Q 220 50 162 86"/>
       <animate attributeName="opacity" values="0;0.9;0.9;0" dur="4s" repeatCount="indefinite"/>
@@ -227,12 +211,7 @@ const HajjVisual = () => (
       <animateMotion dur="2.5s" repeatCount="indefinite" path="M 30 140 Q 100 110 162 86"/>
       <animate attributeName="opacity" values="0;0.7;0.7;0" dur="2.5s" repeatCount="indefinite"/>
     </circle>
-
-    {/* Arabic text */}
-    <text x="140" y="28" textAnchor="middle" fontFamily="serif" fontSize="11"
-      fill="#C9B88A" opacity="0.65" direction="rtl">لَبَّيْكَ</text>
-
-    {/* Labels */}
+    <text x="140" y="28" textAnchor="middle" fontFamily="serif" fontSize="11" fill="#C9B88A" opacity="0.65" direction="rtl">لَبَّيْكَ</text>
     <text x="14" y="152" fontFamily="DM Mono, monospace" fontSize="7" fill="#6a5a3a" letterSpacing="1">ANCIENT</text>
     <text x="220" y="152" fontFamily="DM Mono, monospace" fontSize="7" fill="#C9B88A" letterSpacing="1" opacity="0.7">MECCA</text>
   </svg>
@@ -253,77 +232,175 @@ const TurtleVisual = () => (
         <feGaussianBlur stdDeviation="2.5" />
       </filter>
     </defs>
- 
-    {/* Deep ocean background */}
     <rect width="280" height="180" fill="url(#turtleOcean)" />
- 
-    {/* Subtle grid */}
     {[0,40,80,120,160,200,240,280].map(x => (
       <line key={`v${x}`} x1={x} y1="0" x2={x} y2="180" stroke="#4ade8008" strokeWidth="0.5" />
     ))}
     {[0,36,72,108,144,180].map(y => (
       <line key={`h${y}`} x1="0" y1={y} x2="280" y2={y} stroke="#4ade8008" strokeWidth="0.5" />
     ))}
- 
-    {/* Globe circle */}
     <circle cx="140" cy="90" r="72" fill="#061409" stroke="#1a3a2022" strokeWidth="0.8" />
     <circle cx="140" cy="90" r="72" fill="url(#turtleGlow)" />
- 
-    {/* Land masses — stylized */}
-    {/* Americas */}
     <path d="M95 52 Q90 65 88 80 Q87 95 92 108 Q88 95 85 82 Q82 68 88 55 Z" fill="#0f2a14" opacity="0.9" />
-    {/* Africa/Europe */}
     <path d="M148 50 Q155 62 153 78 Q151 92 148 104 Q144 92 143 78 Q142 63 145 52 Z" fill="#0f2a14" opacity="0.9" />
-    {/* Australia */}
     <path d="M183 95 Q190 88 196 93 Q200 100 195 108 Q188 112 182 106 Q178 100 183 95 Z" fill="#0f2a14" opacity="0.9" />
-    {/* Asia */}
     <path d="M158 45 Q172 48 180 55 Q185 65 178 72 Q170 68 162 62 Q157 55 158 45 Z" fill="#0f2a14" opacity="0.9" />
- 
-    {/* Pacific Leatherback route — bright emerald */}
-    <path d="M178 78 Q190 70 200 65 Q215 60 210 72 Q200 80 188 82 Q178 84 178 78"
-      stroke="#4ade80" strokeWidth="1.5" fill="none" opacity="0.9" strokeDasharray="3,3" />
-    {/* Atlantic Loggerhead — medium green */}
-    <path d="M100 82 Q110 72 125 68 Q138 65 145 70 Q138 75 125 78 Q112 80 100 82"
-      stroke="#86efac" strokeWidth="1.5" fill="none" opacity="0.8" strokeDasharray="3,3" />
-    {/* Green turtle — teal */}
-    <path d="M108 100 Q120 98 128 96 Q133 95 134 98"
-      stroke="#34d399" strokeWidth="1.5" fill="none" opacity="0.8" strokeDasharray="2,3" />
- 
-    {/* Glow behind routes */}
+    <path d="M178 78 Q190 70 200 65 Q215 60 210 72 Q200 80 188 82 Q178 84 178 78" stroke="#4ade80" strokeWidth="1.5" fill="none" opacity="0.9" strokeDasharray="3,3" />
+    <path d="M100 82 Q110 72 125 68 Q138 65 145 70 Q138 75 125 78 Q112 80 100 82" stroke="#86efac" strokeWidth="1.5" fill="none" opacity="0.8" strokeDasharray="3,3" />
+    <path d="M108 100 Q120 98 128 96 Q133 95 134 98" stroke="#34d399" strokeWidth="1.5" fill="none" opacity="0.8" strokeDasharray="2,3" />
     <path d="M178 78 Q190 70 200 65" stroke="#4ade80" strokeWidth="5" fill="none" opacity="0.15" filter="url(#turtleBlur)" />
     <path d="M100 82 Q110 72 125 68 Q138 65 145 70" stroke="#86efac" strokeWidth="5" fill="none" opacity="0.12" filter="url(#turtleBlur)" />
- 
-    {/* Nesting beach dots */}
     <circle cx="101" cy="82" r="3" fill="#4ade80" opacity="0.9" />
     <circle cx="101" cy="82" r="6" fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.4" />
     <circle cx="134" cy="97" r="2.5" fill="#34d399" opacity="0.9" />
     <circle cx="134" cy="97" r="5" fill="none" stroke="#34d399" strokeWidth="0.8" opacity="0.4" />
     <circle cx="193" cy="101" r="2.5" fill="#059669" opacity="0.9" />
     <circle cx="197" cy="80" r="2.5" fill="#4ade80" opacity="0.8" />
- 
-    {/* Turtle silhouette — center */}
     <g transform="translate(130, 82) scale(0.9)">
-      {/* Shell */}
       <ellipse cx="10" cy="8" rx="9" ry="7" fill="#16a34a" opacity="0.9" />
       <ellipse cx="10" cy="8" rx="7" ry="5" fill="none" stroke="#4ade80" strokeWidth="0.6" opacity="0.6" />
-      {/* Head */}
       <ellipse cx="18.5" cy="7" rx="3" ry="2.5" fill="#15803d" opacity="0.9" />
-      {/* Flippers */}
       <path d="M5 3 Q1 0 0 3 Q2 5 5 4" fill="#15803d" opacity="0.8" />
       <path d="M5 13 Q1 16 0 13 Q2 11 5 12" fill="#15803d" opacity="0.8" />
       <path d="M15 2 Q17 -1 19 1 Q18 4 15 4" fill="#15803d" opacity="0.7" />
       <path d="M15 14 Q17 17 19 15 Q18 12 15 12" fill="#15803d" opacity="0.7" />
     </g>
- 
-    {/* Glowing center radial */}
     <circle cx="140" cy="90" r="72" fill="none" stroke="#4ade8015" strokeWidth="1" />
- 
-    {/* World Turtle Day label */}
-    <text x="140" y="168" textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="7" fill="#4ade8066" letterSpacing="2">
-      WORLD TURTLE DAY · MAY 23
-    </text>
+    <text x="140" y="168" textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="7" fill="#4ade8066" letterSpacing="2">WORLD TURTLE DAY · MAY 23</text>
   </svg>
-);
+)
+
+// ─── Chagai Visual — "The Dossier" card ───────────────────────────────────────
+// White/paper aesthetic, South Asia silhouettes, seismograph spikes, shockwave rings
+const ChagaiVisual = () => (
+  <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+    <defs>
+      <style>{`
+        @keyframes chagaiRing1 {
+          0%   { r: 0; opacity: 0.7; }
+          100% { r: 38; opacity: 0; }
+        }
+        @keyframes chagaiRing2 {
+          0%   { r: 0; opacity: 0.5; }
+          100% { r: 52; opacity: 0; }
+        }
+        @keyframes chagaiRing3 {
+          0%   { r: 0; opacity: 0.3; }
+          100% { r: 66; opacity: 0; }
+        }
+        .c-ring1 { animation: chagaiRing1 2.6s ease-out infinite; }
+        .c-ring2 { animation: chagaiRing2 2.6s ease-out 0.5s infinite; }
+        .c-ring3 { animation: chagaiRing3 2.6s ease-out 1s infinite; }
+      `}</style>
+    </defs>
+
+    {/* Paper background */}
+    <rect width="280" height="160" fill="#F4F0E8"/>
+
+    {/* Subtle graph-paper grid */}
+    {[28,56,84,112,140].map(y => (
+      <line key={`h${y}`} x1="0" y1={y} x2="280" y2={y} stroke="#ddd8cc" strokeWidth="0.35"/>
+    ))}
+    {[40,80,120,160,200,240].map(x => (
+      <line key={`v${x}`} x1={x} y1="0" x2={x} y2="160" stroke="#ddd8cc" strokeWidth="0.35"/>
+    ))}
+
+    {/* Pakistan silhouette — dark charcoal ink blob */}
+    <ellipse cx="108" cy="80" rx="46" ry="42" fill="#1a1814" opacity="0.88"/>
+    {/* Balochistan region — slightly lighter within */}
+    <ellipse cx="90" cy="92" rx="22" ry="20" fill="#2a2520" opacity="0.7"/>
+    {/* Kashmir notch */}
+    <ellipse cx="128" cy="52" rx="12" ry="8" fill="#2a2520" opacity="0.6"/>
+
+    {/* India silhouette — pale ochre */}
+    <ellipse cx="178" cy="90" rx="36" ry="44" fill="#c4a882" opacity="0.45"/>
+
+    {/* Country ink labels */}
+    <text x="108" y="77" textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="7"
+      fill="#F4F0E8" letterSpacing="2" opacity="0.75">PAK</text>
+    <text x="178" y="93" textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="7"
+      fill="#7a5a3a" letterSpacing="2" opacity="0.7">IND</text>
+
+    {/* Chagai site — shockwave rings + crosshair dot */}
+    <circle className="c-ring1" cx="88" cy="96" fill="none" stroke="#C9B88A" strokeWidth="1.4" r="0"/>
+    <circle className="c-ring2" cx="88" cy="96" fill="none" stroke="#C9B88A" strokeWidth="0.8" r="0"/>
+    <circle className="c-ring3" cx="88" cy="96" fill="none" stroke="#C9B88A" strokeWidth="0.5" r="0"/>
+    <circle cx="88" cy="96" r="3.5" fill="#C9B88A"/>
+    {/* crosshair */}
+    <line x1="88" y1="88" x2="88" y2="104" stroke="#C9B88A" strokeWidth="0.6" opacity="0.5"/>
+    <line x1="80" y1="96" x2="96" y2="96" stroke="#C9B88A" strokeWidth="0.6" opacity="0.5"/>
+
+    {/* Pokhran site — red dot */}
+    <circle cx="168" cy="72" r="3" fill="#8B1A1A" opacity="0.85"/>
+    <circle cx="168" cy="72" r="3" fill="none" stroke="#8B1A1A" strokeWidth="0.8">
+      <animate attributeName="r" values="4;9;4" dur="2.8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.6;0;0.6" dur="2.8s" repeatCount="indefinite"/>
+    </circle>
+
+    {/* Leader lines + site labels */}
+    <line x1="88" y1="96" x2="54" y2="116" stroke="#C9B88A" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.7"/>
+    <text x="50" y="124" textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="6.5"
+      fill="#C9B88A" letterSpacing="0.5">CHAGAI</text>
+
+    <line x1="168" y1="72" x2="194" y2="52" stroke="#8B1A1A" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.6"/>
+    <text x="205" y="50" textAnchor="start" fontFamily="'DM Mono', monospace" fontSize="6.5"
+      fill="#8B1A1A" letterSpacing="0.5">POKHRAN</text>
+
+    {/* ── SEISMOGRAPH BAR — bottom ── */}
+    <rect x="0" y="130" width="280" height="30" fill="#1a1814"/>
+    {/* Baseline */}
+    <line x1="14" y1="145" x2="266" y2="145" stroke="#3a3830" strokeWidth="0.5"/>
+    {/* Tick marks */}
+    {Array.from({length: 20}, (_, i) => (
+      <line key={i} x1={14 + i*13} y1="142" x2={14 + i*13} y2="148"
+        stroke="#3a3830" strokeWidth="0.4"/>
+    ))}
+
+    {/* India spikes — red, left zone */}
+    {/* May 11 */}
+    <polyline points="42,145 43,140 44,132 45,140 46,145"
+      fill="none" stroke="#8B1A1A" strokeWidth="1.5" strokeLinejoin="round"/>
+    {/* May 13 */}
+    <polyline points="62,145 63,141 64,135 65,141 66,145"
+      fill="none" stroke="#8B1A1A" strokeWidth="1.2" strokeLinejoin="round"/>
+
+    {/* 17-day flat gap — implied by sparse ticks */}
+
+    {/* Pakistan spikes — gold, right zone, cluster of 5 */}
+    <polyline points="176,145 177,140 178,131 179,140 180,145"
+      fill="none" stroke="#C9B88A" strokeWidth="2" strokeLinejoin="round"/>
+    <polyline points="185,145 186,141 187,133 188,141 189,145"
+      fill="none" stroke="#C9B88A" strokeWidth="1.8" strokeLinejoin="round"/>
+    <polyline points="193,145 194,141 195,134 196,141 197,145"
+      fill="none" stroke="#C9B88A" strokeWidth="1.6" strokeLinejoin="round"/>
+    <polyline points="201,145 202,142 203,136 204,142 205,145"
+      fill="none" stroke="#C9B88A" strokeWidth="1.4" strokeLinejoin="round"/>
+    <polyline points="209,145 210,142 211,137 212,142 213,145"
+      fill="none" stroke="#C9B88A" strokeWidth="1.2" strokeLinejoin="round"/>
+    {/* May 30 — 6th, slightly separated */}
+    <polyline points="232,145 233,142 234,136 235,142 236,145"
+      fill="none" stroke="#C9B88A" strokeWidth="1.1" strokeLinejoin="round" opacity="0.75"/>
+
+    {/* Date micro-labels */}
+    <text x="44" y="158" textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="5.5"
+      fill="#8B1A1A" letterSpacing="0.5">MAY 11</text>
+    <text x="64" y="158" textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="5.5"
+      fill="#8B1A1A" letterSpacing="0.5">13</text>
+    <text x="194" y="158" textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="5.5"
+      fill="#C9B88A" letterSpacing="0.5">MAY 28 ×5</text>
+    <text x="234" y="158" textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="5.5"
+      fill="#C9B88A" letterSpacing="0.5">30</text>
+
+    {/* Top stamp */}
+    <rect x="8" y="8" width="110" height="14" fill="none" stroke="#1a1814" strokeWidth="0.8"/>
+    <text x="63" y="18" textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="7"
+      fill="#1a1814" letterSpacing="1.5">DECLASSIFIED</text>
+
+    {/* Year watermark */}
+    <text x="220" y="122" fontFamily="'Playfair Display', serif" fontSize="38" fontWeight="900"
+      fill="#1a1814" opacity="0.04">1998</text>
+  </svg>
+)
 
 // ─── THE REGISTRY ─────────────────────────────────────────────────────────────
 export const MAPS_REGISTRY = [
@@ -423,7 +500,7 @@ export const MAPS_REGISTRY = [
     tagColor: '#4ade80',
     cardBg: 'linear-gradient(135deg, #020804 0%, #061409 50%, #020c05 100%)',
     hoverBorderColor: '#4ade80',
-    desc: 'Sea turtles have navigated the world\'s oceans for 100 million years. They cross entire ocean basins, find 7-mile islands in 40 million square miles of sea, and return to the exact beach where they were born. Six of seven species now face extinction.',
+    desc: "Sea turtles have navigated the world's oceans for 100 million years. They cross entire ocean basins, find 7-mile islands in 40 million square miles of sea, and return to the exact beach where they were born. Six of seven species now face extinction.",
     stats: [
       { value: '100M', label: 'years of navigation' },
       { value: '6,000', label: 'miles per journey' },
@@ -432,6 +509,25 @@ export const MAPS_REGISTRY = [
     status: 'live',
     path: '/maps/turtle-day',
     Visual: TurtleVisual,
+  },
+  {
+    id: 'chagai-1998',
+    title: 'Youm-e-Takbir',
+    eyebrow: 'Chagai · Balochistan · Pakistan',
+    year: '28 May 1998',
+    tag: 'NUCLEAR HISTORY',
+    tagColor: '#1a1814',
+    cardBg: '#F4F0E8',
+    hoverBorderColor: '#C9B88A',
+    desc: 'Pakistan detonated five nuclear devices at Chagai, 17 days after India\'s Pokhran-II tests. The mountain turned white. A nation announced itself to the world. Six blasts. One Day of Greatness.',
+    stats: [
+      { value: '6', label: 'Total Tests' },
+      { value: '17', label: 'Days After India' },
+      { value: '7th', label: 'Nuclear Power' },
+    ],
+    status: 'live',
+    path: '/maps/chagai-1998',
+    Visual: ChagaiVisual,
   },
 ]
 

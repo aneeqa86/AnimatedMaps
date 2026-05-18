@@ -10,6 +10,7 @@ import PalestineMap from '@/pages/maps/PalestineMap'
 import CricketMap from '@/pages/maps/CricketMap'
 import HajjMap from '@/pages/maps/HajjMap'
 import TurtleMap from '@/pages/maps/TurtleMap'
+import ChagaiMap from '@/pages/maps/ChagaiMap'
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
         <Route path="/maps/cricket-empire" element={<CricketMap />} />
         <Route path="/maps/hajj-roads" element={<HajjMap />} />
         <Route path="/maps/turtle-day" element={<TurtleMap />} />
+        <Route path="/maps/chagai-1998" element={<ChagaiMap />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
