@@ -1,736 +1,620 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+// ChagaiMap.jsx — v4 BOLD REDESIGN
+// Layout: full-bleed left text panel + map right half
+// Mood: each chapter shifts the ENTIRE color atmosphere
+// No more tiny amber-on-dark. Big type. Dramatic color per chapter.
+
+import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import { Link } from 'react-router-dom'
 import { CHAPTERS, CHAGAI_SITE, POKHRAN_SITE, SEISMIC_EVENTS, CHAPTER_DURATION } from '@/data/chagaiMap'
 
-// ─── Keyframes injected once ─────────────────────────────────────────────────
+// ─── Per-chapter mood palettes ────────────────────────────────────────────────
+const MOODS = [
+  // 0 — The Long Road: aged sepia, patient
+  { bg:'#2B1F0E', panel:'#3A2910', accent:'#C8912A', text:'#F0DFB8', sub:'#9A7D55', map:'sepia' },
+  // 1 — The Provocation: India tests — angry crimson
+  { bg:'#2A0C06', panel:'#3D1008', accent:'#E84020', text:'#FFCAB8', sub:'#B06050', map:'red' },
+  // 2 — The Decision: tension, electric teal on near-black
+  { bg:'#060E1A', panel:'#0C1828', accent:'#30B8E8', text:'#B8D8F0', sub:'#507090', map:'night' },
+  // 3 — DETONATION: blinding white-hot then amber
+  { bg:'#1A1000', panel:'#2A1A00', accent:'#FFD020', text:'#FFF0C0', sub:'#B08020', map:'heat' },
+  // 4 — Aftermath: green radiation / isolation
+  { bg:'#061208', panel:'#0C2010', accent:'#50D870', text:'#C0F0C8', sub:'#408050', map:'fallout' },
+]
+
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Lato:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap');
 
-  @keyframes shockwave {
-    0%   { r: 0px; opacity: 0.8; stroke-width: 2.5; }
-    100% { r: 180px; opacity: 0; stroke-width: 0.3; }
-  }
-  @keyframes shockwave2 {
-    0%   { r: 0px; opacity: 0.6; stroke-width: 2; }
-    100% { r: 240px; opacity: 0; stroke-width: 0.2; }
-  }
-  @keyframes shockwave3 {
-    0%   { r: 0px; opacity: 0.35; stroke-width: 1.5; }
-    100% { r: 300px; opacity: 0; stroke-width: 0.1; }
-  }
-  @keyframes pkhranPulse {
-    0%   { r: 4px; opacity: 0.9; }
-    50%  { r: 14px; opacity: 0.15; }
-    100% { r: 4px; opacity: 0.9; }
-  }
-  @keyframes chagaiPulse {
-    0%   { r: 5px; opacity: 1; }
-    50%  { r: 16px; opacity: 0.1; }
-    100% { r: 5px; opacity: 1; }
-  }
-  @keyframes stampIn {
-    0%   { opacity: 0; transform: scale(1.08); }
-    100% { opacity: 1; transform: scale(1); }
-  }
-  @keyframes fadeUp {
-    0%   { opacity: 0; transform: translateY(12px); }
-    100% { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes seismoReveal {
-    0%  { clip-path: inset(0 100% 0 0); }
-    100%{ clip-path: inset(0 0% 0 0); }
-  }
-  @keyframes counterTick {
-    0%   { transform: translateY(8px); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
-  }
-  @keyframes scanline {
-    0%   { top: -2px; }
-    100% { top: 100%; }
-  }
-  @keyframes redactorBlink {
-    0%,49%  { opacity: 1; }
-    50%,100% { opacity: 0; }
-  }
+* { box-sizing: border-box; }
 
-  .chagai-stamp {
-    animation: stampIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
-  }
-  .chagai-fadeup {
-    animation: fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both;
-  }
-  .chagai-body-line {
-    animation: fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both;
-  }
+@keyframes moodBg {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideInLeft {
+  from { opacity:0; transform: translateX(-40px); }
+  to   { opacity:1; transform: translateX(0); }
+}
+@keyframes slideInRight {
+  from { opacity:0; transform: translateX(24px); }
+  to   { opacity:1; transform: translateX(0); }
+}
+@keyframes popIn {
+  0%   { opacity:0; transform: scale(0.7) rotate(-8deg); }
+  60%  { transform: scale(1.06) rotate(-4deg); }
+  100% { opacity:1; transform: scale(1) rotate(-4deg); }
+}
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(14px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+@keyframes countNum {
+  from { opacity:0; transform: scale(0.5); }
+  to   { opacity:1; transform: scale(1); }
+}
+@keyframes seismoReveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
+}
+@keyframes progressFill {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+@keyframes shockExpand {
+  0%   { r: 0;   opacity: 0.9; }
+  100% { r: 500; opacity: 0; }
+}
+@keyframes detonFlash {
+  0%   { opacity: 0; }
+  8%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes scanLine {
+  0%   { top: -2px; }
+  100% { top: 100%; }
+}
+@keyframes pulseAccent {
+  0%,100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+@keyframes glowPulse {
+  0%,100% { text-shadow: 0 0 20px currentColor; }
+  50%      { text-shadow: 0 0 60px currentColor, 0 0 120px currentColor; }
+}
+@keyframes trefoilSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes redactSlide {
+  from { transform: scaleX(0); transform-origin: left; }
+  to   { transform: scaleX(1); transform-origin: left; }
+}
+
+.seismo { animation: seismoReveal 3s ease 0.3s both; }
+
+.mapboxgl-ctrl-bottom-left,
+.mapboxgl-ctrl-bottom-right,
+.mapboxgl-ctrl-attrib { display:none!important; }
 `
 
-// ─── Seismograph SVG component ────────────────────────────────────────────────
-const Seismograph = ({ activeChapter }) => {
-  const W = 700
-  const MID = 28
-  const events = SEISMIC_EVENTS
+// ─── Trefoil ──────────────────────────────────────────────────────────────────
+const Trefoil = ({ size, color, spin }) => {
+  const r = 18, inner = 6, lobe = 14
+  const lobes = [0, 120, 240].map(deg => {
+    const rad = (deg - 90) * Math.PI / 180
+    return { cx: 50 + r * Math.cos(rad), cy: 50 + r * Math.sin(rad) }
+  })
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100"
+      style={{ display:'block', flexShrink:0,
+        animation: spin ? 'trefoilSpin 6s linear infinite' : 'none' }}>
+      {lobes.map((p, i) => <circle key={i} cx={p.cx} cy={p.cy} r={lobe} fill={color}/>)}
+      <circle cx="50" cy="50" r="22" fill="currentColor"/>
+      <circle cx="50" cy="50" r={inner} fill={color}/>
+    </svg>
+  )
+}
 
-  // Build the baseline with spikes
+// ─── Seismograph ──────────────────────────────────────────────────────────────
+const Seismograph = ({ activeIdx, accent }) => {
+  const W = 900, MID = 26
   const buildPath = () => {
     let d = `M 0 ${MID}`
-    events.forEach(ev => {
-      const x = ev.x * W
-      const h = ev.intensity * 22
-      d += ` L ${x - 6} ${MID}`
-      d += ` L ${x - 2} ${MID + h * 0.3}`
-      d += ` L ${x} ${MID - h}`
-      d += ` L ${x + 2} ${MID + h * 0.3}`
-      d += ` L ${x + 6} ${MID}`
+    SEISMIC_EVENTS.forEach(ev => {
+      const x = ev.x * W, h = ev.intensity * 22
+      d += ` L ${x-12} ${MID} L ${x-3} ${MID-h} L ${x} ${MID+h*0.8} L ${x+3} ${MID-h*0.35} L ${x+11} ${MID}`
     })
-    d += ` L ${W} ${MID}`
-    return d
+    return d + ` L ${W} ${MID}`
   }
-
+  const path = buildPath()
   return (
-    <svg
-      width="100%" height="56"
-      viewBox={`0 0 ${W} 56`}
-      style={{ display: 'block', overflow: 'visible' }}
-    >
-      {/* Baseline grid ticks */}
-      {Array.from({ length: 40 }, (_, i) => (
-        <line
-          key={i}
-          x1={i * (W / 40)} y1={MID - 3}
-          x2={i * (W / 40)} y2={MID + 3}
-          stroke="#c8bfb0" strokeWidth="0.4"
-        />
-      ))}
-
-      {/* Flat baseline */}
-      <line x1="0" y1={MID} x2={W} y2={MID} stroke="#c8bfb0" strokeWidth="0.6" />
-
-      {/* The waveform */}
-      <path
-        d={buildPath()}
-        fill="none"
-        stroke="#1a1814"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-
-      {/* Coloured spike overlays */}
-      {events.map((ev, i) => {
-        const x = ev.x * W
-        const h = ev.intensity * 22
+    <svg width="100%" height="54" viewBox={`0 0 ${W} ${MID*2}`} preserveAspectRatio="none">
+      <path d={path} stroke={`${accent}28`} strokeWidth="7" fill="none" className="seismo" style={{filter:'blur(4px)'}}/>
+      <path d={path} stroke={accent} strokeWidth="1.8" fill="none" className="seismo"/>
+      {SEISMIC_EVENTS.map((ev, i) => {
+        const col = i < 2 ? '#E84020' : accent
         return (
-          <path
-            key={i}
-            d={`M ${x - 6} ${MID} L ${x - 2} ${MID + h * 0.3} L ${x} ${MID - h} L ${x + 2} ${MID + h * 0.3} L ${x + 6} ${MID}`}
-            fill="none"
-            stroke={ev.color}
-            strokeWidth="2"
-            strokeLinejoin="round"
-          />
+          <g key={i}>
+            <line x1={ev.x*W} y1="0" x2={ev.x*W} y2={MID*2} stroke={col} strokeWidth="1" strokeDasharray="2 3" opacity="0.5"/>
+            <text x={ev.x*W} y={MID*2-2} textAnchor="middle" fontSize="7" fill={col} opacity="0.9"
+              fontFamily="'Courier Prime',monospace" letterSpacing="0.5">{ev.date}</text>
+            <text x={ev.x*W} y="9" textAnchor="middle" fontSize="6.5" fill={col} opacity="0.6"
+              fontFamily="'Courier Prime',monospace">{ev.label}</text>
+          </g>
         )
       })}
-
-      {/* Event date labels */}
-      {events.map((ev, i) => (
-        <g key={i}>
-          <text
-            x={ev.x * W}
-            y="52"
-            textAnchor="middle"
-            fontFamily="'DM Mono', monospace"
-            fontSize="7"
-            fill={ev.color}
-            letterSpacing="0.08em"
-          >
-            {ev.date}
-          </text>
-          <text
-            x={ev.x * W}
-            y="8"
-            textAnchor="middle"
-            fontFamily="'DM Mono', monospace"
-            fontSize="6.5"
-            fill={ev.color}
-            opacity="0.7"
-            letterSpacing="0.05em"
-          >
-            {ev.label}
-          </text>
-        </g>
-      ))}
-
-      {/* 17-day gap label */}
-      <text
-        x={(0.20 + (0.72 - 0.20) / 2) * W}
-        y="52"
-        textAnchor="middle"
-        fontFamily="'DM Mono', monospace"
-        fontSize="7"
-        fill="#9a9088"
-        letterSpacing="0.12em"
-      >
-        ── 17 DAYS ──
-      </text>
+      {activeIdx === 3 && (
+        <circle cx={SEISMIC_EVENTS[2].x*W} cy={MID} r="0" fill="none" stroke={accent} strokeWidth="2.5">
+          <animate attributeName="r" values="2;28;2" dur="1.4s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;0;1" dur="1.4s" repeatCount="indefinite"/>
+        </circle>
+      )}
     </svg>
   )
 }
 
-// ─── Shockwave SVG overlay ───────────────────────────────────────────────────
-const ShockwaveOverlay = ({ visible, chagaiScreenPos }) => {
-  if (!visible || !chagaiScreenPos) return null
-  const { x, y } = chagaiScreenPos
+// ─── Shockwave overlay ────────────────────────────────────────────────────────
+const ShockwaveOverlay = ({ active, accent }) => {
+  if (!active) return null
   return (
-    <svg
-      style={{
-        position: 'absolute',
-        inset: 0,
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-        zIndex: 8,
-        overflow: 'visible',
-      }}
-    >
-      <circle
-        cx={x} cy={y}
-        r="0"
-        fill="none"
-        stroke="#C9B88A"
-        style={{ animation: 'shockwave 2.8s ease-out infinite' }}
-      />
-      <circle
-        cx={x} cy={y}
-        r="0"
-        fill="none"
-        stroke="#C9B88A"
-        style={{ animation: 'shockwave2 2.8s ease-out 0.6s infinite' }}
-      />
-      <circle
-        cx={x} cy={y}
-        r="0"
-        fill="none"
-        stroke="#C9B88A"
-        style={{ animation: 'shockwave3 2.8s ease-out 1.2s infinite' }}
-      />
-    </svg>
+    <div style={{position:'fixed',inset:0,pointerEvents:'none',zIndex:20}}>
+      {/* White-hot flash */}
+      <div style={{
+        position:'absolute', inset:0,
+        background:'radial-gradient(circle at 62% 50%, rgba(255,255,220,0.55) 0%, rgba(255,200,50,0.2) 20%, transparent 55%)',
+        animation:'detonFlash 3.5s ease infinite',
+      }}/>
+      <svg width="100%" height="100%" style={{position:'absolute',inset:0,overflow:'visible'}}>
+        {[0, 0.6, 1.2].map((d,i) => (
+          <g key={i}>
+            <circle cx="62%" cy="50%" r="0" fill="none" stroke="#FFFFFF" strokeWidth="3" opacity="0">
+              <animate attributeName="r" from="0" to="600" dur="3.5s" begin={`${d}s`} repeatCount="indefinite"/>
+              <animate attributeName="opacity" from="0.7" to="0" dur="3.5s" begin={`${d}s`} repeatCount="indefinite"/>
+              <animate attributeName="stroke-width" from="4" to="0.2" dur="3.5s" begin={`${d}s`} repeatCount="indefinite"/>
+            </circle>
+            <circle cx="62%" cy="50%" r="0" fill="none" stroke={accent} strokeWidth="2" opacity="0">
+              <animate attributeName="r" from="0" to="350" dur="2.5s" begin={`${d+0.25}s`} repeatCount="indefinite"/>
+              <animate attributeName="opacity" from="0.9" to="0" dur="2.5s" begin={`${d+0.25}s`} repeatCount="indefinite"/>
+            </circle>
+          </g>
+        ))}
+      </svg>
+    </div>
   )
 }
 
-// ─── Animated counter ────────────────────────────────────────────────────────
-const useCounter = (target, active) => {
+// ─── Animated counter ─────────────────────────────────────────────────────────
+const Counter = ({ target }) => {
   const [val, setVal] = useState(0)
+  const ref = useRef(target)
   useEffect(() => {
-    if (!active) { setVal(0); return }
-    let start = null
-    const duration = 1200
-    const step = (ts) => {
-      if (!start) start = ts
-      const progress = Math.min((ts - start) / duration, 1)
-      const ease = 1 - Math.pow(1 - progress, 3)
-      setVal(Math.round(ease * target))
-      if (progress < 1) requestAnimationFrame(step)
+    ref.current = target; setVal(0)
+    let s = null
+    const f = ts => {
+      if (!s) s = ts
+      const p = Math.min((ts-s)/1200,1)
+      setVal(Math.round((1-Math.pow(1-p,3))*target))
+      if (p < 1 && ref.current === target) requestAnimationFrame(f)
     }
-    requestAnimationFrame(step)
-  }, [target, active])
-  return val
+    requestAnimationFrame(f)
+  }, [target])
+  return <>{val}</>
 }
 
-// ─── Main component ──────────────────────────────────────────────────────────
+// ─── Main ─────────────────────────────────────────────────────────────────────
 const ChagaiMap = () => {
-  const mapEl = useRef(null)
-  const mapRef = useRef(null)
-  const markersRef = useRef([])
-  const animRef = useRef(null)
-  const [chapter, setChapter] = useState(0)
+  const mapEl   = useRef(null)
+  const mapRef  = useRef(null)
+  const [idx, setIdx]       = useState(0)
+  const [ready, setReady]   = useState(false)
   const [playing, setPlaying] = useState(true)
-  const [loaded, setLoaded] = useState(false)
-  const [chagaiScreenPos, setChagaiScreenPos] = useState(null)
-  const chapterRef = useRef(0)
-  const playingRef = useRef(true)
-  const FILL_LAYER = 'country-fills-chagai'
-  const FILL_SOURCE = 'country-boundaries-chagai'
 
-  const ch = CHAPTERS[chapter]
-  const statVal = useCounter(ch.stat.value, loaded)
+  const mood    = MOODS[idx]
+  const chapter = CHAPTERS[idx]
+  const ck      = `ck-${idx}`
 
-  // ── Update screen position of Chagai for shockwave overlay ──
-  const updateChagaiScreenPos = useCallback(() => {
-    const map = mapRef.current
-    if (!map) return
-    const pos = map.project(CHAGAI_SITE)
-    setChagaiScreenPos({ x: pos.x, y: pos.y })
-  }, [])
-
-  // ── Apply chapter to map ──────────────────────────────────────────────────
-  const applyChapter = useCallback((map, ch) => {
-    if (!map.getLayer(FILL_LAYER)) return
-    const fillExpr = ['match', ['get', 'iso_3166_1']]
-    ch.fills.forEach(f => { fillExpr.push(f.iso, f.color) })
-    fillExpr.push('rgba(0,0,0,0)')
-    const opacityExpr = ['match', ['get', 'iso_3166_1']]
-    ch.fills.forEach(f => { opacityExpr.push(f.iso, f.opacity) })
-    opacityExpr.push(0)
-    map.setPaintProperty(FILL_LAYER, 'fill-color', fillExpr)
-    map.setPaintProperty(FILL_LAYER, 'fill-opacity', opacityExpr)
-    map.flyTo({
-      center: ch.focus.center,
-      zoom: ch.focus.zoom,
-      duration: 2200,
-      essential: true,
-    })
-    setTimeout(updateChagaiScreenPos, 2400)
-  }, [updateChagaiScreenPos])
-
-  // ── Auto-play ─────────────────────────────────────────────────────────────
+  // ── Map init ────────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!loaded) return
-    if (animRef.current) clearTimeout(animRef.current)
-    if (!playingRef.current) return
-    animRef.current = setTimeout(() => {
-      if (!playingRef.current) return
-      const next = (chapterRef.current + 1) % CHAPTERS.length
-      chapterRef.current = next
-      setChapter(next)
-    }, CHAPTER_DURATION)
-    return () => clearTimeout(animRef.current)
-  }, [chapter, loaded])
-
-  useEffect(() => {
-    if (!loaded || !mapRef.current) return
-    applyChapter(mapRef.current, CHAPTERS[chapter])
-  }, [chapter, loaded, applyChapter])
-
-  const goTo = (idx) => {
-    chapterRef.current = idx
-    setChapter(idx)
-    if (animRef.current) clearTimeout(animRef.current)
-  }
-
-  const togglePlay = () => {
-    const next = !playingRef.current
-    playingRef.current = next
-    setPlaying(next)
-    if (next && loaded) {
-      animRef.current = setTimeout(() => {
-        const nx = (chapterRef.current + 1) % CHAPTERS.length
-        chapterRef.current = nx
-        setChapter(nx)
-      }, CHAPTER_DURATION)
-    } else {
-      clearTimeout(animRef.current)
-    }
-  }
-
-  // ── Map init ──────────────────────────────────────────────────────────────
-  useEffect(() => {
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
+    if (mapRef.current) return
     const map = new mapboxgl.Map({
       container: mapEl.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: CHAPTERS[0].focus.center,
-      zoom: CHAPTERS[0].focus.zoom,
-      projection: 'mercator',
+      style: 'mapbox://styles/mapbox/satellite-streets-v12',
+      center: [65.5, 29.5], zoom: 4.5,
       attributionControl: false,
-      minZoom: 3,
-      maxZoom: 10,
     })
-    mapRef.current = map
-
-    map.on('style.load', () => {
-      // ── Bleach & remap the light style ──
-      map.getStyle().layers.forEach(l => {
-        try {
-          if (l.id === 'background') map.setPaintProperty(l.id, 'background-color', '#F4F0E8')
-          if (l.id.includes('water') && l.type === 'fill') map.setPaintProperty(l.id, 'fill-color', '#DDE8EE')
-          if (l.id.includes('road') && l.type === 'line') {
-            map.setPaintProperty(l.id, 'line-color', '#e0d8cc')
-            map.setPaintProperty(l.id, 'line-opacity', 0.3)
-          }
-          if (l.type === 'symbol') {
-            map.setPaintProperty(l.id, 'text-color', '#8a8075')
-            map.setPaintProperty(l.id, 'text-halo-color', '#F4F0E8')
-            map.setPaintProperty(l.id, 'text-opacity', 0.4)
-          }
-          if (l.id.includes('admin') && l.type === 'line') {
-            map.setPaintProperty(l.id, 'line-color', '#c0b8a8')
-            map.setPaintProperty(l.id, 'line-opacity', 0.5)
-          }
-        } catch {}
+    map.on('load', () => {
+      map.addSource('cb', { type:'vector', url:'mapbox://mapbox.country-boundaries-v1' })
+      ;['PAK','IND','AFG','CHN'].forEach(iso => {
+        map.addLayer({ id:`fill-${iso}`, type:'fill', source:'cb',
+          'source-layer':'country_boundaries', filter:['==','iso_3166_1_alpha_3',iso],
+          paint:{'fill-color':'#000','fill-opacity':0}
+        })
+        map.addLayer({ id:`line-${iso}`, type:'line', source:'cb',
+          'source-layer':'country_boundaries', filter:['==','iso_3166_1_alpha_3',iso],
+          paint:{'line-color':'rgba(255,255,255,0.2)','line-width':1}
+        })
       })
-
-      // ── Country fill source + layer ──
-      map.addSource(FILL_SOURCE, {
-        type: 'vector',
-        url: 'mapbox://mapbox.country-boundaries-v1',
+      // Chagai
+      map.addSource('chagai',{ type:'geojson', data:{ type:'Feature', geometry:{ type:'Point', coordinates:CHAGAI_SITE }}})
+      map.addLayer({ id:'chagai-dot', type:'circle', source:'chagai',
+        paint:{'circle-radius':7,'circle-color':'#FFD020','circle-stroke-width':2,'circle-stroke-color':'#FFFFFF','circle-opacity':1}
       })
-      map.addLayer({
-        id: FILL_LAYER,
-        type: 'fill',
-        source: FILL_SOURCE,
-        'source-layer': 'country_boundaries',
-        paint: {
-          'fill-color': 'rgba(0,0,0,0)',
-          'fill-opacity': 0,
-        },
+      // Pokhran
+      map.addSource('pokhran',{ type:'geojson', data:{ type:'Feature', geometry:{ type:'Point', coordinates:POKHRAN_SITE }}})
+      map.addLayer({ id:'pokhran-dot', type:'circle', source:'pokhran',
+        paint:{'circle-radius':6,'circle-color':'#E84020','circle-stroke-width':1.5,'circle-stroke-color':'#FF8060','circle-opacity':0}
       })
-
-      // ── Chagai marker (gold dot) ──
-      const chagaiEl = document.createElement('div')
-      chagaiEl.innerHTML = `
-        <svg width="40" height="40" viewBox="0 0 40 40" overflow="visible">
-          <circle cx="20" cy="20" r="5" fill="#C9B88A"/>
-          <circle cx="20" cy="20" r="5" fill="none" stroke="#C9B88A" stroke-width="1.2"
-            style="animation: chagaiPulse 2s ease-in-out infinite"/>
-          <line x1="20" y1="4" x2="20" y2="36" stroke="#C9B88A" stroke-width="0.5" opacity="0.35"/>
-          <line x1="4" y1="20" x2="36" y2="20" stroke="#C9B88A" stroke-width="0.5" opacity="0.35"/>
-        </svg>
-      `
-      chagaiEl.style.cssText = 'width:40px;height:40px;cursor:default;'
-      new mapboxgl.Marker({ element: chagaiEl, anchor: 'center' })
-        .setLngLat(CHAGAI_SITE)
-        .addTo(map)
-      markersRef.current.push(chagaiEl)
-
-      // ── Pokhran marker (red dot) ──
-      const pokhranEl = document.createElement('div')
-      pokhranEl.innerHTML = `
-        <svg width="28" height="28" viewBox="0 0 28 28" overflow="visible">
-          <circle cx="14" cy="14" r="4" fill="#8B1A1A"/>
-          <circle cx="14" cy="14" r="4" fill="none" stroke="#8B1A1A" stroke-width="1"
-            style="animation: pkhranPulse 2.5s ease-in-out infinite"/>
-        </svg>
-      `
-      pokhranEl.style.cssText = 'width:28px;height:28px;cursor:default;'
-      new mapboxgl.Marker({ element: pokhranEl, anchor: 'center' })
-        .setLngLat(POKHRAN_SITE)
-        .addTo(map)
-
-      // Apply first chapter
-      applyChapter(map, CHAPTERS[0])
-      setLoaded(true)
-      updateChagaiScreenPos()
+      mapRef.current = map
+      setReady(true)
     })
-
-    map.on('move', updateChagaiScreenPos)
-
-    return () => {
-      clearTimeout(animRef.current)
-      map.remove()
-    }
+    return () => map.remove()
   }, [])
 
-  const key = `ch-${chapter}`
+  // ── Chapter transitions ─────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!ready || !mapRef.current) return
+    const map = mapRef.current
+    const ch  = chapter
 
-  // ── Styles ────────────────────────────────────────────────────────────────
-  const S = {
-    root: {
-      position: 'fixed', inset: 0,
-      background: '#F4F0E8',
-      fontFamily: "'Lato', sans-serif",
-      color: '#1a1814',
-      overflow: 'hidden',
-    },
-    map: { position: 'absolute', inset: 0 },
+    map.flyTo({ center:ch.focus.center, zoom:ch.focus.zoom, duration:2600, essential:true })
 
-    // ── TOP BAR ──
-    topBar: {
-      position: 'absolute',
-      top: 0, left: 0, right: 0,
-      height: 40,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 28px',
-      background: 'rgba(244,240,232,0.92)',
-      backdropFilter: 'blur(8px)',
-      borderBottom: '1px solid rgba(26,24,20,0.12)',
-      zIndex: 20,
-    },
-    topBarLeft: {
-      display: 'flex', alignItems: 'center', gap: 20,
-    },
-    topBarLogoLink: {
-      fontFamily: "'DM Mono', monospace",
-      fontSize: 10, letterSpacing: '0.18em',
-      color: '#1a1814', textDecoration: 'none',
-      opacity: 0.6,
-    },
-    topBarTitle: {
-      fontFamily: "'DM Mono', monospace",
-      fontSize: 10, letterSpacing: '0.14em',
-      color: '#1a1814', opacity: 0.85,
-    },
-    topBarRight: {
-      fontFamily: "'DM Mono', monospace",
-      fontSize: 9, letterSpacing: '0.14em',
-      color: '#8a8075',
-    },
+    // Tint based on mood
+    const tints = {
+      sepia:   { PAK:'#3A2000', IND:'#2A1800', AFG:'#3A2400', CHN:'#3A2800' },
+      red:     { PAK:'#1A0800', IND:'#3A0800', AFG:'#2A0A00', CHN:'#2A0800' },
+      night:   { PAK:'#00081A', IND:'#00061A', AFG:'#000C20', CHN:'#000818' },
+      heat:    { PAK:'#200800', IND:'#180600', AFG:'#200A00', CHN:'#1A0800' },
+      fallout: { PAK:'#001808', IND:'#001206', AFG:'#001A08', CHN:'#001408' },
+    }
+    const t = tints[mood.map] || tints.sepia
+    ;['PAK','IND','AFG','CHN'].forEach(iso => {
+      const fill = ch.fills?.find(f => f.iso === iso)
+      try {
+        map.setPaintProperty(`fill-${iso}`, 'fill-color', t[iso] || '#100800')
+        map.setPaintProperty(`fill-${iso}`, 'fill-opacity', (fill?.opacity ?? 0) * 0.28)
+      } catch(_){}
+    })
 
-    // ── STAMP (top-left floating) ──
-    stamp: {
-      position: 'absolute',
-      top: 60, left: 28,
-      zIndex: 15,
-      pointerEvents: 'none',
-    },
-    stampBox: {
-      display: 'inline-block',
-      border: '1.5px solid #1a1814',
-      padding: '3px 10px',
-      fontFamily: "'DM Mono', monospace",
-      fontSize: 9, letterSpacing: '0.22em',
-      color: '#1a1814',
-      background: 'rgba(244,240,232,0.85)',
-    },
+    // Line color match accent
+    ;['PAK','IND','AFG','CHN'].forEach(iso => {
+      try { map.setPaintProperty(`line-${iso}`, 'line-color', `${mood.accent}40`) } catch(_){}
+    })
 
-    // ── CHAPTER OVERLAY — right side ──
-    chapterPanel: {
-      position: 'absolute',
-      top: 60, right: 28,
-      width: 320,
-      zIndex: 15,
-      pointerEvents: 'none',
-    },
-    chYear: {
-      fontFamily: "'DM Mono', monospace",
-      fontSize: 9, letterSpacing: '0.18em',
-      color: '#8a8075',
-      marginBottom: 6,
-    },
-    chTitle: {
-      fontFamily: "'Playfair Display', serif",
-      fontSize: 32, fontWeight: 700, lineHeight: 1.05,
-      color: '#1a1814',
-      margin: '0 0 4px',
-    },
-    chSub: {
-      fontFamily: "'Lato', sans-serif",
-      fontSize: 12, color: '#5a5450',
-      lineHeight: 1.4,
-      margin: '0 0 14px',
-      fontStyle: 'italic',
-    },
-    chRule: {
-      border: 'none',
-      borderTop: '1px solid rgba(26,24,20,0.18)',
-      margin: '0 0 12px',
-    },
-    chBody: {
-      fontFamily: "'Lato', sans-serif",
-      fontSize: 12, lineHeight: 1.65,
-      color: '#3a3530',
-      margin: '0 0 14px',
-    },
-    chQuote: {
-      borderLeft: '2px solid #1a1814',
-      paddingLeft: 12,
-      margin: '0 0 14px',
-      background: 'rgba(26,24,20,0.03)',
-      padding: '8px 12px',
-    },
-    chQuoteText: {
-      fontFamily: "'Playfair Display', serif",
-      fontSize: 11, fontStyle: 'italic',
-      color: '#4a4440',
-      lineHeight: 1.55,
-      display: 'block',
-    },
-    chQuoteAuthor: {
-      fontFamily: "'DM Mono', monospace",
-      fontSize: 9, letterSpacing: '0.1em',
-      color: '#8a8075',
-      display: 'block',
-      marginTop: 5,
-    },
+    const showPokhran = ch.type === 'tension' || ch.pokhranPulse
+    try {
+      map.setPaintProperty('pokhran-dot','circle-opacity', showPokhran ? 1 : 0)
+    } catch(_){}
 
-    // ── STAT BLOCK ──
-    statBlock: {
-      display: 'inline-block',
-      background: '#1a1814',
-      padding: '10px 18px',
-      marginTop: 4,
-    },
-    statVal: {
-      fontFamily: "'Playfair Display', serif",
-      fontSize: 36, fontWeight: 900,
-      color: '#F4F0E8',
-      display: 'block',
-      lineHeight: 1,
-    },
-    statLabel: {
-      fontFamily: "'DM Mono', monospace",
-      fontSize: 8, letterSpacing: '0.18em',
-      color: '#C9B88A',
-      display: 'block',
-      marginTop: 3,
-    },
+    // Chagai dot color = current accent
+    try {
+      map.setPaintProperty('chagai-dot','circle-color', mood.accent)
+    } catch(_){}
+  }, [idx, ready])
 
-    // ── CHAPTER NAV ──
-    chapterNav: {
-      position: 'absolute',
-      bottom: 110,
-      left: '50%',
-      transform: 'translateX(-50%)',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-      zIndex: 20,
-    },
-    chapterDot: (i) => ({
-      width: i === chapter ? 28 : 8,
-      height: 8,
-      borderRadius: 4,
-      background: i === chapter ? '#1a1814' : 'rgba(26,24,20,0.2)',
-      border: 'none',
-      cursor: 'pointer',
-      padding: 0,
-      transition: 'all 0.35s ease',
-    }),
+  // ── Autoplay ────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!playing) return
+    const t = setInterval(() => setIdx(i => {
+      if (i >= CHAPTERS.length-1) { setPlaying(false); return i }
+      return i+1
+    }), CHAPTER_DURATION)
+    return () => clearInterval(t)
+  }, [playing])
 
-    // ── BOTTOM SEISMOGRAPH ──
-    seismoBar: {
-      position: 'absolute',
-      bottom: 0, left: 0, right: 0,
-      height: 88,
-      background: 'rgba(244,240,232,0.94)',
-      backdropFilter: 'blur(8px)',
-      borderTop: '1px solid rgba(26,24,20,0.12)',
-      zIndex: 20,
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: '0 28px',
-    },
-    seismoLabel: {
-      fontFamily: "'DM Mono', monospace",
-      fontSize: 8, letterSpacing: '0.22em',
-      color: '#8a8075',
-      marginBottom: 6,
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    playBtn: {
-      background: 'none',
-      border: '1px solid rgba(26,24,20,0.25)',
-      padding: '3px 10px',
-      fontFamily: "'DM Mono', monospace",
-      fontSize: 8, letterSpacing: '0.14em',
-      color: '#1a1814',
-      cursor: 'pointer',
-    },
+  // ── Keys ────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const h = e => {
+      if (e.key==='ArrowRight') setIdx(i=>Math.min(CHAPTERS.length-1,i+1))
+      if (e.key==='ArrowLeft')  setIdx(i=>Math.max(0,i-1))
+      if (e.key===' ') { e.preventDefault(); setPlaying(p=>!p) }
+    }
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
+  }, [])
 
-    // ── POKHRAN LABEL ──
-    siteLabel: (side) => ({
-      position: 'absolute',
-      top: 60,
-      ...(side === 'left' ? { left: 28 } : { right: 28 }),
-      zIndex: 14,
-    }),
-
-    // ── DETONATION FLASH ──
-    detonFlash: {
-      position: 'absolute',
-      inset: 0,
-      background: 'rgba(201,184,138,0.06)',
-      zIndex: 7,
-      pointerEvents: 'none',
-      animation: chapter === 3 ? 'stampIn 0.3s ease' : 'none',
-    },
-  }
+  const goTo = i => { setIdx(i); setPlaying(false) }
 
   return (
-    <div style={S.root}>
+    <div style={{
+      position:'fixed', inset:0, overflow:'hidden',
+      background: mood.bg,
+      transition: 'background 1.2s ease',
+      display:'flex', flexDirection:'column',
+      fontFamily:"'Courier Prime',monospace",
+      color: mood.text,
+    }}>
       <style>{CSS}</style>
 
-      {/* Map */}
-      <div ref={mapEl} style={S.map} />
+      {/* ── SHOCKWAVE ── */}
+      <ShockwaveOverlay active={chapter.shockwave} accent={mood.accent}/>
 
-      {/* Shockwave overlay */}
-      <ShockwaveOverlay
-        visible={ch.shockwave && loaded}
-        chagaiScreenPos={chagaiScreenPos}
-      />
+      {/* ── SCANLINE ── */}
+      <div style={{
+        position:'fixed', left:0, right:0, height:2, pointerEvents:'none', zIndex:5,
+        background:`linear-gradient(90deg,transparent,${mood.accent}20,transparent)`,
+        animation:'scanLine 9s linear infinite',
+      }}/>
 
-      {/* Detonation flash tint */}
-      {ch.type === 'detonation' && <div style={S.detonFlash} />}
+      {/* ═══════════════════════════════════════════════════════
+          TOP BAR
+      ═══════════════════════════════════════════════════════ */}
+      <div style={{
+        height:50, flexShrink:0,
+        background:`${mood.panel}F0`,
+        borderBottom:`2px solid ${mood.accent}50`,
+        display:'flex', alignItems:'center', justifyContent:'space-between',
+        padding:'0 24px', zIndex:40,
+      }}>
+        <Link to="/maps" style={{
+          color:mood.sub, fontSize:9, letterSpacing:'0.2em',
+          textDecoration:'none', fontFamily:"'Courier Prime',monospace",
+        }}>← ANIMATED MAPS</Link>
 
-      {/* ── TOP BAR ── */}
-      <div style={S.topBar}>
-        <div style={S.topBarLeft}>
-          <Link to="/maps" style={S.topBarLogoLink}>← ANIMATEDMAPS</Link>
-          <span style={{ width: 1, height: 16, background: 'rgba(26,24,20,0.15)', display: 'inline-block' }} />
-          <span style={S.topBarTitle}>NUCLEAR HISTORY · SOUTH ASIA</span>
-        </div>
-        <span style={S.topBarRight}>CHAGAI · BALOCHISTAN · PAKISTAN</span>
-      </div>
-
-      {/* ── STAMP — top left ── */}
-      <div style={S.stamp}>
-        <div key={`stamp-${chapter}`} className="chagai-stamp">
-          <div style={S.stampBox}>
-            {ch.stamp}
+        <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+          <div style={{ color: mood.bg }}>
+            <Trefoil size={20} color={mood.accent} spin={chapter.type==='detonation'}/>
           </div>
-          {/* Declassified watermark only on ch 0 */}
-          {chapter === 0 && (
-            <div style={{
-              marginTop: 8,
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 8, letterSpacing: '0.3em',
-              color: 'rgba(26,24,20,0.3)',
-              textTransform: 'uppercase',
-            }}>
-              CLASSIFIED · DO NOT DISTRIBUTE
-            </div>
-          )}
+          <span style={{
+            fontFamily:"'Anton',sans-serif",
+            fontSize:18, color:mood.accent, letterSpacing:'0.3em',
+            animation: chapter.type==='detonation' ? 'glowPulse 1.5s ease-in-out infinite' : 'none',
+          }}>
+            YOUM-E-TAKBIR
+          </span>
+          <div style={{
+            fontSize:8, color:mood.accent, border:`1.5px solid ${mood.accent}`,
+            padding:'2px 8px', letterSpacing:'0.3em',
+            fontFamily:"'Courier Prime',monospace",
+            background:`${mood.accent}15`,
+          }}>
+            CLASSIFIED
+          </div>
+        </div>
+
+        <div style={{ fontSize:9, color:mood.sub, letterSpacing:'0.14em' }}>
+          28 MAY 1998 &nbsp;·&nbsp; {idx+1} / {CHAPTERS.length}
         </div>
       </div>
 
-      {/* ── CHAPTER PANEL — right ── */}
-      <div style={S.chapterPanel}>
-        <div key={key}>
-          <p style={{ ...S.chYear, animationDelay: '0ms' }} className="chagai-fadeup">
-            {ch.year}
-          </p>
-          <h1 style={{ ...S.chTitle, animationDelay: '60ms' }} className="chagai-fadeup">
-            {ch.title}
+      {/* ═══════════════════════════════════════════════════════
+          BODY: LEFT PANEL + MAP
+      ═══════════════════════════════════════════════════════ */}
+      <div style={{ flex:1, display:'flex', overflow:'hidden', position:'relative' }}>
+
+        {/* ── LEFT PANEL ─────────────────────────────────────────────────── */}
+        <div
+          key={ck}
+          style={{
+            width: 380, flexShrink:0,
+            background:`linear-gradient(180deg, ${mood.panel} 0%, ${mood.bg} 100%)`,
+            borderRight:`2px solid ${mood.accent}35`,
+            padding:'14px 22px 10px',
+            display:'flex', flexDirection:'column',
+            overflow:'hidden', zIndex:10,
+            animation:'slideInLeft 0.5s cubic-bezier(.22,1,.36,1) both',
+            position:'relative',
+          }}
+        >
+          {/* Year label */}
+          <div style={{
+            fontSize:8.5, color:mood.sub, letterSpacing:'0.28em',
+            textTransform:'uppercase', marginBottom:5, flexShrink:0,
+            animation:'fadeUp 0.4s ease 0.05s both', opacity:0,
+          }}>
+            {chapter.year}
+          </div>
+
+          {/* TITLE */}
+          <h1 style={{
+            fontFamily:"'Anton',sans-serif",
+            fontSize:42, lineHeight:0.95,
+            color:mood.text, margin:'0 0 4px', flexShrink:0,
+            letterSpacing:'0.02em',
+            animation:'fadeUp 0.45s ease 0.1s both', opacity:0,
+          }}>
+            {chapter.title.toUpperCase()}
           </h1>
-          <p style={{ ...S.chSub, animationDelay: '120ms' }} className="chagai-fadeup">
-            {ch.subtitle}
-          </p>
-          <hr style={S.chRule} />
-          <p style={{ ...S.chBody, animationDelay: '180ms' }} className="chagai-body-line">
-            {ch.body}
-          </p>
-          <div style={{ ...S.chQuote, animationDelay: '240ms' }} className="chagai-fadeup">
-            <span style={S.chQuoteText}>"{ch.quote}"</span>
-            <span style={S.chQuoteAuthor}>— {ch.quoteAuthor}</span>
+
+          <div style={{
+            fontSize:10, color:mood.sub, fontStyle:'italic', marginBottom:8, flexShrink:0,
+            animation:'fadeUp 0.45s ease 0.16s both', opacity:0,
+          }}>
+            {chapter.subtitle}
           </div>
-          <div style={S.statBlock} className="chagai-stamp">
-            <span style={S.statVal}>{statVal.toLocaleString()}</span>
-            <span style={S.statLabel}>{ch.stat.label}</span>
+
+          {/* Accent rule */}
+          <div style={{
+            height:2, background:`linear-gradient(90deg, ${mood.accent}, transparent)`,
+            marginBottom:8, flexShrink:0,
+            animation:'fadeUp 0.4s ease 0.2s both', opacity:0,
+          }}/>
+
+          {/* Body text */}
+          <p style={{
+            fontSize:10.5, lineHeight:1.65, color:mood.text,
+            opacity:0, margin:'0 0 8px', flexShrink:0,
+            animation:'fadeUp 0.5s ease 0.25s both',
+          }}>
+            {chapter.body}
+          </p>
+
+          {/* REDACTED */}
+          <div style={{
+            marginBottom:8, opacity:0, flexShrink:0,
+            animation:'fadeUp 0.4s ease 0.32s both',
+            display:'flex', alignItems:'center', gap:8,
+          }}>
+            <span style={{ fontSize:8, color:mood.sub, letterSpacing:'0.15em' }}>AUTHORISED BY</span>
+            <div style={{
+              background:mood.accent, height:13, width:130,
+              animation:'redactSlide 0.4s ease 0.5s both', transformOrigin:'left',
+            }}/>
+          </div>
+
+          {/* Quote */}
+          <div style={{
+            borderLeft:`2px solid ${mood.accent}`,
+            paddingLeft:10, marginBottom:0, flexShrink:0,
+            opacity:0, animation:'fadeUp 0.5s ease 0.38s both',
+          }}>
+            <p style={{ fontSize:10, fontStyle:'italic', color:mood.text, lineHeight:1.5, margin:'0 0 3px' }}>
+              "{chapter.quote}"
+            </p>
+            <span style={{ fontSize:8, color:mood.accent, letterSpacing:'0.12em' }}>
+              — {chapter.quoteAuthor}
+            </span>
+          </div>
+
+          {/* STAT at bottom */}
+          <div style={{
+            opacity:0, animation:'fadeUp 0.5s ease 0.45s both',
+            display:'flex', alignItems:'flex-end', gap:10,
+            marginTop:'auto', flexShrink:0,
+            paddingTop:8,
+            borderTop:`1px solid ${mood.accent}25`,
+          }}>
+            <span style={{
+              fontFamily:"'Anton',sans-serif",
+              fontSize:72, lineHeight:0.88,
+              color:mood.accent,
+              textShadow:`0 0 28px ${mood.accent}55`,
+            }}>
+              <Counter target={chapter.stat.value}/>
+            </span>
+            <span style={{
+              fontSize:8.5, color:mood.sub, letterSpacing:'0.18em',
+              textTransform:'uppercase', paddingBottom:6,
+              lineHeight:1.4, maxWidth:80,
+            }}>
+              {chapter.stat.label}
+            </span>
+            <div style={{
+              marginLeft:'auto', alignSelf:'center',
+              fontFamily:"'Special Elite',cursive",
+              fontSize:8.5, color:mood.accent,
+              border:`2px solid ${mood.accent}`,
+              padding:'3px 7px', letterSpacing:'0.15em',
+              transform:'rotate(-3deg)',
+              background:`${mood.accent}12`,
+              animation:'popIn 0.5s cubic-bezier(.22,1,.36,1) 0.4s both', opacity:0,
+            }}>
+              {chapter.stamp || 'DECLASSIFIED'}
+            </div>
+          </div>
+        </div>
+
+        {/* ── MAP ──────────────────────────────────────────────────────────── */}
+        <div style={{ flex:1, position:'relative' }}>
+          <div ref={mapEl} style={{ position:'absolute', inset:0 }}/>
+
+          {/* Detonation heat bloom over map */}
+          {chapter.type === 'detonation' && (
+            <div style={{
+              position:'absolute', inset:0, pointerEvents:'none', zIndex:3,
+              background:'radial-gradient(ellipse at 60% 52%, rgba(255,220,50,0.22) 0%, rgba(220,120,10,0.1) 30%, transparent 60%)',
+              animation:'detonFlash 3s ease infinite',
+            }}/>
+          )}
+
+          {/* Mood-tinted vignette */}
+          <div style={{
+            position:'absolute', inset:0, pointerEvents:'none', zIndex:2,
+            background:`radial-gradient(ellipse at 50% 50%, transparent 45%, ${mood.bg}99 100%)`,
+            transition:'background 1.2s ease',
+          }}/>
+
+          {/* Chapter number — big watermark */}
+          <div style={{
+            position:'absolute', bottom:16, right:16, zIndex:5,
+            fontFamily:"'Anton',sans-serif",
+            fontSize:200, lineHeight:1,
+            color:`${mood.accent}08`,
+            letterSpacing:'-0.05em',
+            userSelect:'none', pointerEvents:'none',
+          }}>
+            {idx+1}
           </div>
         </div>
       </div>
 
-      {/* ── CHAPTER DOTS ── */}
-      <div style={S.chapterNav}>
-        {CHAPTERS.map((_, i) => (
-          <button key={i} style={S.chapterDot(i)} onClick={() => goTo(i)} />
-        ))}
+      {/* ═══════════════════════════════════════════════════════
+          SEISMOGRAPH BAR
+      ═══════════════════════════════════════════════════════ */}
+      <div style={{
+        flexShrink:0,
+        background:`${mood.panel}F0`,
+        borderTop:`1px solid ${mood.accent}25`,
+        padding:'5px 24px 0',
+        zIndex:30,
+      }}>
+        <div style={{
+          display:'flex', justifyContent:'space-between',
+          fontSize:7.5, color:mood.sub, letterSpacing:'0.2em', marginBottom:2,
+        }}>
+          <span>SEISMOGRAPH · CTBTO · MAY 1998</span>
+          <span style={{
+            color: chapter.type==='detonation' ? mood.accent : mood.sub,
+            animation: chapter.type==='detonation' ? 'pulseAccent 0.9s ease-in-out infinite' : 'none',
+          }}>
+            {chapter.type==='detonation' ? '◉ DETONATION DETECTED' : '○ MONITORING'}
+          </span>
+        </div>
+        <Seismograph activeIdx={idx} accent={mood.accent}/>
       </div>
 
-      {/* ── SEISMOGRAPH BAR ── */}
-      <div style={S.seismoBar}>
-        <div style={S.seismoLabel}>
-          <span>SEISMIC RECORD · MAY 1998 · SOUTH ASIA</span>
-          <button style={S.playBtn} onClick={togglePlay}>
-            {playing ? '⏸ PAUSE' : '▶ PLAY'}
+      {/* ═══════════════════════════════════════════════════════
+          CONTROLS
+      ═══════════════════════════════════════════════════════ */}
+      <div style={{
+        height:46, flexShrink:0,
+        background:`${mood.bg}FC`,
+        borderTop:`1px solid ${mood.accent}30`,
+        display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+        position:'relative', zIndex:40,
+      }}>
+        {/* Progress bar */}
+        {playing && (
+          <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:`${mood.accent}15`}}>
+            <div key={`pb-${idx}`} style={{
+              height:'100%',
+              background:`linear-gradient(90deg, ${mood.sub}, ${mood.accent}, ${mood.text})`,
+              animation:`progressFill ${CHAPTER_DURATION}ms linear both`, width:0,
+            }}/>
+          </div>
+        )}
+
+        {CHAPTERS.map((ch, i) => (
+          <button key={i} onClick={() => goTo(i)} style={{
+            background: i===idx ? `${mood.accent}20` : 'transparent',
+            border:`1px solid ${i===idx ? mood.accent : `${mood.accent}25`}`,
+            color: i===idx ? mood.accent : mood.sub,
+            padding:'4px 12px', cursor:'pointer',
+            fontFamily:"'Courier Prime',monospace", fontSize:8.5, letterSpacing:'0.1em',
+            transition:'all 0.3s ease',
+            boxShadow: i===idx ? `0 0 12px ${mood.accent}30` : 'none',
+          }}>
+            {String(ch.year||'').split('–')[0].trim().slice(0,7)}
           </button>
-        </div>
-        <Seismograph activeChapter={chapter} />
+        ))}
+
+        <div style={{ width:1, height:16, background:`${mood.accent}25`, margin:'0 4px' }}/>
+
+        <button onClick={() => setPlaying(p=>!p)} style={{
+          background: playing ? `${mood.accent}20` : 'transparent',
+          border:`1px solid ${mood.accent}50`,
+          color: playing ? mood.accent : mood.sub,
+          padding:'4px 14px', cursor:'pointer',
+          fontFamily:"'Courier Prime',monospace", fontSize:8.5, letterSpacing:'0.14em',
+          transition:'all 0.2s',
+        }}>
+          {playing ? '■ HALT' : '▶ PLAY'}
+        </button>
+
+        <button onClick={() => { setIdx(0); setPlaying(true) }} style={{
+          background:'transparent', border:`1px solid ${mood.accent}25`,
+          color:mood.sub, padding:'4px 10px', cursor:'pointer', fontSize:11,
+        }}>
+          ↺
+        </button>
       </div>
     </div>
   )

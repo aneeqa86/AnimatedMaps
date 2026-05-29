@@ -135,15 +135,15 @@ export const CHAPTERS = [
     id: 'today',
     type: 'modern',
     era: 'modern',
-    year: '2024',
+    year: '2026',
     badge: 'THE CONVERGENCE',
     arabicTitle: 'التقاء الطرق',
-    title: '2.5 Million. 180 Countries.',
+    title: '11.8 Million. 180 Countries.',
     subtitle: 'The largest annual peaceful gathering in human history',
-    body: 'Today, pilgrims from 180 nations descend on a city built for 2 million people. Saudi Arabia issues quotas — 1,000 pilgrims per million Muslims per country. Indonesia sends 221,000. Pakistan 179,000. Bangladesh 127,000. Nigeria 95,000. Every air corridor in the Muslim world pulses during Dhul Hijja. Every route that was once walked in months is now flown in hours. The destination has not changed.',
+    body: 'In 2026, pilgrims from 180 nations converge on Mecca in numbers never seen before — 11.8 million souls answering the same call. Saudi Arabia\'s Vision 2030 expansion has transformed the Grand Mosque and its surrounds to receive this tide of devotion. Indonesia leads with over 800,000 pilgrims. Pakistan sends nearly 700,000. Bangladesh, Nigeria, India, and Turkey each dispatch hundreds of thousands more. Every air corridor in the Muslim world pulses during Dhul Hijja.',
     quote: 'In Hajj there is neither Arab nor non-Arab, neither rich nor poor, neither man nor woman — only the pilgrim.',
-    stat: 2500000,
-    statLabel: 'pilgrims in 2024',
+    stat: 11800000,
+    statLabel: 'pilgrims in 2026',
     mapCenter: [39.8262, 21.4225],
     mapZoom: 2.0,
     showRoutes: ['air_pakistan', 'air_indonesia', 'air_nigeria', 'air_turkey', 'air_morocco', 'air_iran', 'air_india', 'air_uk', 'air_usa', 'air_malaysia', 'air_egypt', 'air_senegal'],
@@ -157,9 +157,9 @@ export const CHAPTERS = [
     arabicTitle: 'مَكَّةُ الْمُكَرَّمَة',
     title: 'Mecca the Blessed',
     subtitle: 'The center around which the world turns',
-    body: 'Every route on this map ends at the same point. Every camel footprint, every ship wake, every flight arc — all converge on a single valley in the Hejaz. The journey changes with every century. The destination never does. The Ka\'bah has stood since before memory, draped in black silk embroidered with gold. Around it, the world still turns.',
+    body: 'Every route on this map ends at the same point. Every camel footprint, every ship wake, every flight arc — all converge on a single valley in the Hejaz. The journey changes with every century. The destination never does. The Ka\'bah has stood since before memory, draped in black silk embroidered with gold. In 2026, nearly 12 million hearts from 180 nations turned to face it. Around it, the world still turns.',
     quote: 'لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ — Here I am, O Allah, here I am.',
-    stat: 2500000,
+    stat: 11800000,
     statLabel: 'hearts pointing to one place',
     mapCenter: [39.8262, 21.4225],
     mapZoom: 5.5,
@@ -302,6 +302,45 @@ export const SEA_ROUTES = {
       [39.2, 21.5],   // Jeddah
     ],
   },
+  // ─── Steam-era routes ────────────────────────────────────────────────────────
+  steam_india: {
+    id: 'steam_india',
+    label: 'Bombay to Jeddah — P&O Steamship',
+    color: '#7A9FAA',
+    coords: [
+      [72.8, 18.9],   // Bombay
+      [62.0, 17.0],   // Mid Arabian Sea
+      [55.0, 16.0],   // Gulf of Aden
+      [48.0, 13.5],   // Aden
+      [43.0, 15.5],   // Bab-el-Mandeb
+      [39.2, 21.5],   // Jeddah
+    ],
+  },
+  steam_egypt: {
+    id: 'steam_egypt',
+    label: 'Suez to Jeddah — Canal Route',
+    color: '#7A9FAA',
+    coords: [
+      [2.3, 48.9],    // Paris
+      [13.0, 37.5],   // Mediterranean
+      [32.3, 31.2],   // Suez
+      [38.0, 27.0],   // Red Sea north
+      [39.2, 21.5],   // Jeddah
+    ],
+  },
+  steam_java: {
+    id: 'steam_java',
+    label: 'Batavia to Jeddah — Dutch Line',
+    color: '#5A8A9A',
+    coords: [
+      [106.8, -6.2],  // Jakarta
+      [103.8, 1.3],   // Singapore
+      [80.0, 8.0],    // Indian Ocean
+      [58.0, 15.0],   // Arabian Sea
+      [48.0, 13.5],   // Aden
+      [39.2, 21.5],   // Jeddah
+    ],
+  },
 }
 
 // ─── Modern Air Routes (sharp arcs) ──────────────────────────────────────────
@@ -312,7 +351,7 @@ export const AIR_ROUTES = {
     origin: [67.0, 24.9],    // Karachi
     dest: [39.2, 21.5],      // Jeddah
     color: '#E8DFC0',
-    pilgrims: 179000,
+    pilgrims: 700000,
   },
   air_indonesia: {
     id: 'air_indonesia',
@@ -320,7 +359,7 @@ export const AIR_ROUTES = {
     origin: [107.0, -6.2],   // Jakarta
     dest: [39.2, 21.5],
     color: '#E8DFC0',
-    pilgrims: 221000,
+    pilgrims: 840000,
   },
   air_nigeria: {
     id: 'air_nigeria',
@@ -328,7 +367,7 @@ export const AIR_ROUTES = {
     origin: [3.4, 6.5],      // Lagos
     dest: [39.2, 21.5],
     color: '#E8DFC0',
-    pilgrims: 95000,
+    pilgrims: 400000,
   },
   air_turkey: {
     id: 'air_turkey',
@@ -336,7 +375,7 @@ export const AIR_ROUTES = {
     origin: [28.9, 41.0],    // Istanbul
     dest: [39.2, 21.5],
     color: '#E8DFC0',
-    pilgrims: 83000,
+    pilgrims: 350000,
   },
   air_morocco: {
     id: 'air_morocco',
@@ -344,7 +383,7 @@ export const AIR_ROUTES = {
     origin: [-7.6, 33.6],    // Casablanca
     dest: [39.2, 21.5],
     color: '#E8DFC0',
-    pilgrims: 42000,
+    pilgrims: 180000,
   },
   air_iran: {
     id: 'air_iran',
@@ -352,7 +391,7 @@ export const AIR_ROUTES = {
     origin: [51.4, 35.7],    // Tehran
     dest: [39.2, 21.5],
     color: '#E8DFC0',
-    pilgrims: 87000,
+    pilgrims: 360000,
   },
   air_india: {
     id: 'air_india',
@@ -360,7 +399,7 @@ export const AIR_ROUTES = {
     origin: [72.8, 19.0],    // Mumbai
     dest: [39.2, 21.5],
     color: '#E8DFC0',
-    pilgrims: 175000,
+    pilgrims: 680000,
   },
   air_uk: {
     id: 'air_uk',
@@ -368,7 +407,7 @@ export const AIR_ROUTES = {
     origin: [-0.1, 51.5],    // London
     dest: [39.2, 21.5],
     color: '#D4C8A8',
-    pilgrims: 25000,
+    pilgrims: 110000,
   },
   air_usa: {
     id: 'air_usa',
@@ -376,7 +415,7 @@ export const AIR_ROUTES = {
     origin: [-87.6, 41.8],   // Chicago
     dest: [39.2, 21.5],
     color: '#D4C8A8',
-    pilgrims: 12000,
+    pilgrims: 55000,
   },
   air_malaysia: {
     id: 'air_malaysia',
@@ -384,7 +423,7 @@ export const AIR_ROUTES = {
     origin: [101.7, 3.1],    // Kuala Lumpur
     dest: [39.2, 21.5],
     color: '#E8DFC0',
-    pilgrims: 30000,
+    pilgrims: 130000,
   },
   air_egypt: {
     id: 'air_egypt',
@@ -392,7 +431,7 @@ export const AIR_ROUTES = {
     origin: [31.2, 30.0],    // Cairo
     dest: [39.2, 21.5],
     color: '#E8DFC0',
-    pilgrims: 90000,
+    pilgrims: 380000,
   },
   air_senegal: {
     id: 'air_senegal',
@@ -400,7 +439,7 @@ export const AIR_ROUTES = {
     origin: [-17.4, 14.7],   // Dakar
     dest: [39.2, 21.5],
     color: '#D4C8A8',
-    pilgrims: 14000,
+    pilgrims: 60000,
   },
 }
 

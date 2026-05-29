@@ -1,670 +1,838 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+// PakistanWorker.jsx — DEFINITIVE CINEMATIC EDITION
+// Aesthetic: NEWSPAPER ARCHIVE / WIRE DISPATCH
+// Panel: top-right floating clipping (preserved from original design)
+// Added: autoplay, bezier arcs, moving walker particles, pulsing Gulf,
+//        cinematic camera, animated counters, telegraph sound + drone,
+//        breaking news headlines, floating particles, typewriter titles
+
+import { useEffect, useRef, useState, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import { Link } from 'react-router-dom'
-import { CHAPTERS, CHAPTER_ICONS, MIGRATION_FLOWS, CITY_MARKERS } from '../../data/pakistanWorker'
+import { CHAPTERS, MIGRATION_FLOWS, CITY_MARKERS } from '@/data/pakistanWorker'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const INK      = '#1a1208'
+const AGED     = '#8B7355'
+const RED_INK  = '#8B1A1A'
+const GOLD     = '#FF6B35'
+const CREAM    = '#F4E8C8'
 
-const useCounter = (target, duration = 1200) => {
-  const [value, setValue] = useState(0)
-  useEffect(() => {
-    if (!target) { setValue(0); return }
-    let current = 0
-    const step = target / (duration / 16)
-    const timer = setInterval(() => {
-      current += step
-      if (current >= target) { setValue(target); clearInterval(timer) }
-      else setValue(Math.floor(current * 10) / 10)
-    }, 16)
-    return () => clearInterval(timer)
-  }, [target, duration])
-  return value
+const CHAPTER_DURATION_MS = 11000
+
+const BREAKING_HEADLINES = [
+  '🔴 BREAKING — NEW NATION BORN: 32 MILLION SOULS, 75 UNIONS, ZERO RIGHTS',
+  '🔴 BREAKING — MARTIAL LAW: TRADE UNION ACT ABOLISHED OVERNIGHT BY DECREE',
+  '🔴 BREAKING — KARACHI ERUPTS: WORKERS & STUDENTS DEFY AYUB IN THE STREETS',
+  '🔴 BREAKING — SHOTS FIRED AT FEROZ MILLS: LABOUR LEADER DEAD, 58 ARRESTED',
+  '🔴 BREAKING — GULF DOORS OPEN: FIRST 30,000 PAKISTANIS DEPART FOR RIYADH',
+  '🔴 BREAKING — ZIA COUP: 8,000 UNIONS IN CROSSHAIRS — CRACKDOWN IMMINENT',
+  '🔴 BREAKING — EXODUS: 200,000 LEAVE THIS YEAR ALONE — FAMILIES LEFT BEHIND',
+  '🔴 BREAKING — ZIA BANS ALL STRIKES: "GOD WILL PROVIDE" — WORKERS FLEE ABROAD',
+  '🔴 BREAKING — FACTORY INFERNO BALDIA TOWN: 260 DEAD, EXITS WERE PADLOCKED',
+  '🔴 BREAKING — RECORD YEAR: 946,571 REGISTERED FOR WORK ABROAD IN 12 MONTHS',
+  '🔴 BREAKING — $35 BILLION FLOWS HOME: REMITTANCES NOW 85× THEIR 1976 LEVEL',
+]
+
+const TICKER_ITEMS = [
+  'KARACHI — 14 MILLION PAKISTANIS WORK ABROAD',
+  'GULF STATES ACCOUNT FOR 73% OF OVERSEAS PAKISTANI WORKFORCE',
+  'REMITTANCES REACH $35 BILLION IN FY2024 — SECOND LARGEST FOREIGN EXCHANGE EARNER',
+  '1972: POLICE OPEN FIRE ON WORKERS AT FEROZ TEXTILE MILLS, SITE KARACHI',
+  'ZIA-UL-HAQ BANS STRIKES 1977 — EIGHT THOUSAND UNIONS SILENCED',
+  'ALI ENTERPRISES FIRE 2012 — 259 WORKERS KILLED, FACTORY GATE PADLOCKED',
+  'DUBAI 1973: FIRST WAVE OF GULF MIGRATION BEGINS — 30,000 WORKERS',
+  'MAID FROM LAHORE EARNS MORE IN RIYADH THAN DOCTOR IN MULTAN',
+  'WE BUILT THEIR TOWERS. WE PAVED THEIR ROADS. WE WILL NEVER BE ALLOWED TO STAY.',
+]
+
+// ─── CSS ──────────────────────────────────────────────────────────────────────
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=DM+Mono:wght@300;400;500&family=Lato:ital,wght@0,300;0,400;1,300;1,400&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+
+@keyframes tickerScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes clippingIn {
+  0%   { opacity: 0; transform: translateY(-22px) rotate(-2deg); filter: blur(6px); }
+  100% { opacity: 1; transform: translateY(0) rotate(-0.5deg); filter: blur(0); }
+}
+@keyframes stampIn {
+  0%   { opacity: 0; transform: scale(1.4) rotate(-6deg); }
+  60%  { transform: scale(0.93) rotate(-3deg); }
+  100% { opacity: 0.7; transform: scale(1) rotate(-3deg); }
+}
+@keyframes floatPaper {
+  0%,100% { transform: rotate(-0.5deg) translateY(0px); }
+  50%     { transform: rotate(0.3deg) translateY(-5px); }
+}
+@keyframes pulse {
+  0%,100% { opacity: 0.6; transform: scale(1); }
+  50%     { opacity: 1;   transform: scale(1.15); }
+}
+@keyframes floatUp {
+  0%   { opacity: 0; transform: translateY(0) rotate(0deg); }
+  10%  { opacity: 0.7; }
+  90%  { opacity: 0.5; }
+  100% { opacity: 0; transform: translateY(-100vh) rotate(360deg); }
+}
+@keyframes breakingSlide {
+  0%   { opacity: 0; transform: translateX(-50px); }
+  12%  { opacity: 1; transform: translateX(0); }
+  85%  { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(50px); }
+}
+@keyframes panelIn {
+  0%   { opacity: 0; transform: translateY(-18px) rotate(-2deg); }
+  100% { opacity: 1; transform: translateY(0) rotate(-0.5deg); }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes grain {
+  0%,100%{transform:translate(0,0)}
+  20%{transform:translate(-2%,3%)}
+  40%{transform:translate(2%,-2%)}
+  60%{transform:translate(-3%,1%)}
+  80%{transform:translate(1%,-3%)}
 }
 
-// SVG crowd for origin cities (gold)
-const crowdOriginSVG = (color = '#C9B88A') => `
-  <svg viewBox="0 0 80 60" width="70" height="52" xmlns="http://www.w3.org/2000/svg">
-    <g opacity="0.5">
-      <circle cx="8" cy="6" r="4.5" fill="${color}"/>
-      <rect x="4" y="11" width="7" height="13" rx="2" fill="${color}"/>
-      <rect x="1" y="13" width="3.5" height="9" rx="1.5" fill="${color}"/>
-      <rect x="11" y="13" width="3.5" height="9" rx="1.5" fill="${color}"/>
-      <rect x="4" y="24" width="3" height="10" rx="1.5" fill="${color}"/>
-      <rect x="8" y="24" width="3" height="10" rx="1.5" fill="${color}"/>
-    </g>
-    <g>
-      <circle cx="26" cy="4" r="5.5" fill="${color}"/>
-      <rect x="21" y="10" width="9" height="16" rx="2" fill="${color}"/>
-      <rect x="30" y="4" width="4" height="9" rx="2" fill="${color}"/>
-      <rect x="17" y="12" width="4" height="11" rx="1.5" fill="${color}"/>
-      <rect x="21" y="26" width="4" height="12" rx="1.5" fill="${color}"/>
-      <rect x="27" y="26" width="4" height="12" rx="1.5" fill="${color}"/>
-    </g>
-    <g opacity="0.8">
-      <circle cx="45" cy="7" r="4.5" fill="${color}"/>
-      <rect x="41" y="12" width="8" height="14" rx="2" fill="${color}"/>
-      <rect x="37" y="14" width="3.5" height="9" rx="1.5" fill="${color}"/>
-      <rect x="49" y="14" width="3.5" height="9" rx="1.5" fill="${color}"/>
-      <rect x="41" y="26" width="3.5" height="10" rx="1.5" fill="${color}"/>
-      <rect x="46" y="26" width="3.5" height="10" rx="1.5" fill="${color}"/>
-    </g>
-    <g opacity="0.45">
-      <circle cx="62" cy="10" r="4" fill="${color}"/>
-      <rect x="58" y="15" width="7" height="12" rx="2" fill="${color}"/>
-      <rect x="58" y="27" width="3" height="9" rx="1.5" fill="${color}"/>
-      <rect x="63" y="27" width="3" height="9" rx="1.5" fill="${color}"/>
-    </g>
-    <line x1="0" y1="46" x2="75" y2="46" stroke="${color}" stroke-width="0.8" opacity="0.3"/>
-    <circle cx="37" cy="46" r="36" fill="none" stroke="${color}" stroke-width="0.5" opacity="0.12"/>
-  </svg>
+.dispatch-clip {
+  animation: clippingIn 0.6s cubic-bezier(0.34,1.2,0.64,1) both;
+}
+.float-paper {
+  animation: floatPaper 5s ease-in-out 0.8s infinite;
+}
+.stamp-in {
+  animation: stampIn 0.5s cubic-bezier(0.34,1.2,0.64,1) 0.5s both;
+  opacity: 0;
+}
+.pulse { animation: pulse 2s ease-in-out infinite; }
+
+.mapboxgl-ctrl-bottom-left,
+.mapboxgl-ctrl-bottom-right,
+.mapboxgl-ctrl-attrib { display: none !important; }
 `
 
-// SVG protest crowd for labor events (red)
-const crowdLaborSVG = (color = '#8B1A1A') => `
-  <svg viewBox="0 0 90 75" width="80" height="66" xmlns="http://www.w3.org/2000/svg">
-    <rect x="22" y="0" width="38" height="16" rx="0" fill="${color}" opacity="0.85"/>
-    <text x="41" y="11" font-family="monospace" font-size="6.5" fill="#E8E0D0" text-anchor="middle" letter-spacing="0.5">WORKERS</text>
-    <line x1="41" y1="16" x2="41" y2="28" stroke="${color}" stroke-width="1.5" opacity="0.9"/>
-    <g transform="translate(0,22)" opacity="0.85">
-      <circle cx="8" cy="6" r="4.5" fill="${color}"/>
-      <rect x="4" y="11" width="7" height="14" rx="2" fill="${color}"/>
-      <rect x="0" y="7" width="3.5" height="9" rx="1.5" fill="${color}"/>
-      <rect x="11" y="13" width="3.5" height="9" rx="1.5" fill="${color}"/>
-      <rect x="4" y="25" width="3" height="11" rx="1.5" fill="${color}"/>
-      <rect x="8" y="25" width="3" height="11" rx="1.5" fill="${color}"/>
-    </g>
-    <g transform="translate(16,16)">
-      <circle cx="9" cy="6" r="5.5" fill="${color}"/>
-      <rect x="4" y="12" width="10" height="17" rx="2" fill="${color}"/>
-      <rect x="14" y="2" width="5" height="8" rx="2" fill="${color}"/>
-      <rect x="0" y="13" width="4" height="11" rx="1.5" fill="${color}"/>
-      <rect x="4" y="29" width="4" height="12" rx="1.5" fill="${color}"/>
-      <rect x="10" y="29" width="4" height="12" rx="1.5" fill="${color}"/>
-    </g>
-    <g transform="translate(33,20)" opacity="0.9">
-      <circle cx="8" cy="6" r="4.5" fill="${color}"/>
-      <rect x="4" y="11" width="8" height="14" rx="2" fill="${color}"/>
-      <rect x="0" y="6" width="3.5" height="10" rx="1.5" fill="${color}"/>
-      <rect x="12" y="13" width="3.5" height="9" rx="1.5" fill="${color}"/>
-      <rect x="4" y="25" width="3.5" height="10" rx="1.5" fill="${color}"/>
-      <rect x="8.5" y="25" width="3.5" height="10" rx="1.5" fill="${color}"/>
-    </g>
-    <g transform="translate(49,24)" opacity="0.65">
-      <circle cx="7" cy="5" r="4" fill="${color}"/>
-      <rect x="3" y="10" width="7" height="12" rx="2" fill="${color}"/>
-      <rect x="3" y="22" width="3" height="9" rx="1.5" fill="${color}"/>
-      <rect x="7" y="22" width="3" height="9" rx="1.5" fill="${color}"/>
-    </g>
-    <g transform="translate(62,28)" opacity="0.4">
-      <circle cx="7" cy="5" r="3.5" fill="${color}"/>
-      <rect x="3" y="10" width="7" height="11" rx="2" fill="${color}"/>
-      <rect x="3" y="21" width="3" height="8" rx="1.5" fill="${color}"/>
-      <rect x="7" y="21" width="3" height="8" rx="1.5" fill="${color}"/>
-    </g>
-    <line x1="-4" y1="62" x2="82" y2="62" stroke="${color}" stroke-width="0.8" opacity="0.35"/>
-  </svg>
-`
-
-// Walking migrant SVG (for animated marker)
-const walkerSVG = (color = '#C9B88A') => `
-  <svg viewBox="0 0 24 44" width="18" height="33" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="12" cy="5" r="4.5" fill="${color}"/>
-    <rect x="8" y="10" width="8" height="14" rx="2" fill="${color}"/>
-    <rect x="16" y="9" width="7" height="6" rx="1" fill="${color}" opacity="0.75"/>
-    <line x1="16" y1="11" x2="16" y2="11" stroke="${color}" stroke-width="1.5"/>
-    <rect x="2" y="11" width="4" height="12" rx="2" fill="${color}" transform="rotate(-12 4 11)"/>
-    <rect x="18" y="12" width="4" height="12" rx="2" fill="${color}" transform="rotate(12 20 12)"/>
-    <rect x="7" y="24" width="4" height="14" rx="2" fill="${color}" transform="rotate(-8 9 24)"/>
-    <rect x="13" y="24" width="4" height="14" rx="2" fill="${color}" transform="rotate(8 15 24)"/>
-  </svg>
-`
-
-const PakistanWorker = () => {
-  const mapContainerRef = useRef(null)
-  const mapRef = useRef(null)
-  const markersRef = useRef([])
-  const walkerMarkersRef = useRef([])
-  const walkerAnimRef = useRef([])
-  const [currentChapter, setCurrentChapter] = useState(0)
-  const [playing, setPlaying] = useState(false)
-  const [mapLoaded, setMapLoaded] = useState(false)
-  const intervalRef = useRef(null)
-
-  const chapter = CHAPTERS[currentChapter]
-  const workerCount = useCounter(chapter.stats.workers)
-  const remittanceCount = useCounter(chapter.stats.remittance)
-  const progress = (currentChapter / (CHAPTERS.length - 1)) * 100
-  const iconColor = chapter.type === 'labor' ? '#8B1A1A' : '#C9B88A'
-
-  const isLaborChapter = chapter.type === 'labor'
-
-  const buildCityMarkerEl = useCallback((marker) => {
-    const isOrigin = marker.type === 'origin'
-    const color = isOrigin ? '#C9B88A' : '#8B1A1A'
-    const svgContent = isOrigin ? crowdOriginSVG(color) : crowdOriginSVG(color)
-
-    const el = document.createElement('div')
-    el.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      opacity: 0;
-      transition: opacity 0.8s ease;
-      pointer-events: none;
-      transform: translate(-50%, -100%);
-      cursor: default;
-    `
-    el.innerHTML = `
-      <div style="filter: drop-shadow(0 0 6px ${color}44);">
-        ${svgContent}
-      </div>
-      <div style="
-        background: rgba(8,8,8,0.95);
-        border: 1px solid ${color}33;
-        padding: 3px 8px;
-        white-space: nowrap;
-      ">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:${color};letter-spacing:0.12em;line-height:1.5;">${marker.name}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:8px;color:#555;letter-spacing:0.08em;line-height:1.4;">${marker.workers}</div>
-      </div>
-    `
-    return el
-  }, [])
-
-  // Animate a walker along a line between two coordinates
-  const animateWalker = useCallback((map, from, to, walkerEl, duration = 8000) => {
-    let start = null
-    let animId = null
-
-    const step = (timestamp) => {
-      if (!start) start = timestamp
-      const elapsed = timestamp - start
-      const t = Math.min(elapsed / duration, 1)
-
-      const lng = from[0] + (to[0] - from[0]) * t
-      const lat = from[1] + (to[1] - from[1]) * t
-
-      // Get pixel position
-      const pos = map.project([lng, lat])
-      walkerEl.style.left = `${pos.x}px`
-      walkerEl.style.top = `${pos.y}px`
-      walkerEl.style.opacity = t < 0.05 ? `${t / 0.05}` : t > 0.92 ? `${(1 - t) / 0.08}` : '1'
-
-      if (t < 1) {
-        animId = requestAnimationFrame(step)
-      } else {
-        // Loop
-        start = null
-        animId = requestAnimationFrame(step)
-      }
-    }
-
-    animId = requestAnimationFrame(step)
-    return animId
-  }, [])
-
+// ─── ANIMATED COUNTER ─────────────────────────────────────────────────────────
+const useCounter = (target, duration = 1300) => {
+  const [val, setVal] = useState(0)
   useEffect(() => {
+    if (!target) { setVal(0); return }
+    let start = null
+    const tick = (ts) => {
+      if (!start) start = ts
+      const p = Math.min((ts - start) / duration, 1)
+      const ease = 1 - Math.pow(1 - p, 3)
+      setVal(Math.round(target * ease * 10) / 10)
+      if (p < 1) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  }, [target, duration])
+  return val
+}
+
+// ─── TYPEWRITER ───────────────────────────────────────────────────────────────
+const TypewriterText = ({ text, speed = 48 }) => {
+  const [displayed, setDisplayed] = useState('')
+  const [i, setI] = useState(0)
+  useEffect(() => { setDisplayed(''); setI(0) }, [text])
+  useEffect(() => {
+    if (i >= text.length) return
+    const t = setTimeout(() => { setDisplayed(prev => prev + text[i]); setI(p => p + 1) }, speed)
+    return () => clearTimeout(t)
+  }, [i, text, speed])
+  return <>{displayed}<span style={{ opacity: i < text.length ? 1 : 0 }}>|</span></>
+}
+
+// ─── FLOATING PARTICLE ────────────────────────────────────────────────────────
+const FloatingParticle = ({ delay, duration, size, left }) => (
+  <div style={{
+    position: 'absolute', left: `${left}%`, bottom: '-10px',
+    width: size, height: size,
+    background: `radial-gradient(circle, ${GOLD}bb, transparent)`,
+    borderRadius: '50%',
+    animation: `floatUp ${duration}s linear infinite`,
+    animationDelay: `${delay}s`,
+    pointerEvents: 'none', zIndex: 3,
+  }} />
+)
+
+// ─── BEZIER ARC ───────────────────────────────────────────────────────────────
+const makeBezierArc = (from, to, steps = 80) => {
+  const midLng = (from[0] + to[0]) / 2
+  const midLat = (from[1] + to[1]) / 2 + 13
+  const coords = []
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps, mt = 1 - t
+    coords.push([
+      mt*mt*from[0] + 2*mt*t*midLng + t*t*to[0],
+      mt*mt*from[1] + 2*mt*t*midLat + t*t*to[1],
+    ])
+  }
+  return coords
+}
+
+// ─── WALKER SVG ───────────────────────────────────────────────────────────────
+const walkerSVG = `
+  <svg viewBox="0 0 24 44" width="15" height="27" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="5" r="4.5" fill="${GOLD}"/>
+    <rect x="8" y="10" width="8" height="14" rx="2" fill="${GOLD}"/>
+    <rect x="16" y="9" width="6" height="5" rx="1" fill="${GOLD}" opacity="0.7"/>
+    <rect x="2" y="11" width="4" height="12" rx="2" fill="${GOLD}" transform="rotate(-12 4 11)"/>
+    <rect x="18" y="12" width="4" height="12" rx="2" fill="${GOLD}" transform="rotate(12 20 12)"/>
+    <rect x="7" y="24" width="4" height="14" rx="2" fill="${GOLD}" transform="rotate(-8 9 24)"/>
+    <rect x="13" y="24" width="4" height="14" rx="2" fill="${GOLD}" transform="rotate(8 15 24)"/>
+  </svg>`
+
+// ─── WEB AUDIO ────────────────────────────────────────────────────────────────
+const buildAudio = () => {
+  const AC = window.AudioContext || window.webkitAudioContext
+  if (!AC) return null
+  const ctx = new AC()
+
+  const playTelegraph = () => {
+    const now = ctx.currentTime
+    ;[0, 0.09, 0.18, 0.30, 0.39].forEach((t, i) => {
+      const osc = ctx.createOscillator()
+      const g   = ctx.createGain()
+      osc.type = 'square'
+      osc.frequency.value = i % 2 === 0 ? 820 : 640
+      g.gain.setValueAtTime(0, now + t)
+      g.gain.linearRampToValueAtTime(0.11, now + t + 0.005)
+      g.gain.linearRampToValueAtTime(0, now + t + 0.038)
+      osc.connect(g); g.connect(ctx.destination)
+      osc.start(now + t); osc.stop(now + t + 0.05)
+    })
+  }
+
+  let droneNodes = null
+  const startDrone = () => {
+    if (droneNodes) return
+    const o1 = ctx.createOscillator()
+    const o2 = ctx.createOscillator()
+    const filt = ctx.createBiquadFilter()
+    const gain = ctx.createGain()
+    o1.type = 'sine'; o1.frequency.value = 55
+    o2.type = 'sine'; o2.frequency.value = 82
+    filt.type = 'lowpass'; filt.frequency.value = 180
+    gain.gain.value = 0.035
+    o1.connect(filt); o2.connect(filt)
+    filt.connect(gain); gain.connect(ctx.destination)
+    o1.start(); o2.start()
+    droneNodes = { o1, o2 }
+  }
+  const stopDrone = () => {
+    if (!droneNodes) return
+    try { droneNodes.o1.stop(); droneNodes.o2.stop() } catch {}
+    droneNodes = null
+  }
+
+  return { ctx, playTelegraph, startDrone, stopDrone }
+}
+
+// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+const PakistanWorker = () => {
+  const mapContainer    = useRef(null)
+  const mapRef          = useRef(null)
+  const audioRef        = useRef(null)
+  const walkersRef      = useRef([])
+  const walkerAnimsRef  = useRef([])
+  const arcAnimRef      = useRef(null)
+  const gulfPulseRef    = useRef(null)
+  const autoplayRef     = useRef(null)
+
+  const [idx, setIdx]               = useState(0)
+  const [mapReady, setMapReady]     = useState(false)
+  const [playing, setPlaying]       = useState(true)   // ← autoplay on
+  const [soundEnabled, setSoundEnabled] = useState(false)
+  const [particles]                 = useState(() =>
+    Array.from({ length: 18 }, (_, i) => ({
+      id: i, delay: Math.random() * 6,
+      duration: 9 + Math.random() * 8,
+      size: `${2 + Math.random() * 5}px`,
+      left: Math.random() * 100,
+    }))
+  )
+  const [breaking, setBreaking]     = useState({ show: false, text: '' })
+  const [panelKey, setPanelKey]     = useState(0)
+
+  const chapter    = CHAPTERS[idx]
+  const isMigration = chapter.type === 'migration' || chapter.type === 'both'
+  const isLabor     = chapter.type === 'labor'     || chapter.type === 'both'
+  const typeLabel   = isMigration && !isLabor ? 'OVERSEAS DISPATCH' : 'LABOUR BUREAU'
+  const chKey       = `ch-${idx}-${chapter.id}`
+
+  const workerCount = useCounter(chapter.stats.workers)
+  const remittCount = useCounter(chapter.stats.remittance)
+
+  // ── fire breaking news ────────────────────────────────────────────────────
+  const fireBreaking = useCallback((i) => {
+    const text = BREAKING_HEADLINES[i]
+    if (!text) return
+    setBreaking({ show: true, text })
+    setTimeout(() => setBreaking({ show: false, text: '' }), 5800)
+  }, [])
+
+  // ── navigate ──────────────────────────────────────────────────────────────
+  const goTo = useCallback((i) => {
+    const clamped = Math.max(0, Math.min(CHAPTERS.length - 1, i))
+    setIdx(clamped)
+    setPanelKey(k => k + 1)
+    fireBreaking(clamped)
+    if (audioRef.current && soundEnabled) audioRef.current.playTelegraph()
+  }, [fireBreaking, soundEnabled])
+
+  // ── autoplay ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    clearInterval(autoplayRef.current)
+    if (!playing) return
+    autoplayRef.current = setInterval(() => {
+      setIdx(prev => {
+        const next = prev + 1
+        if (next >= CHAPTERS.length) { setPlaying(false); return prev }
+        setPanelKey(k => k + 1)
+        fireBreaking(next)
+        if (audioRef.current && soundEnabled) audioRef.current.playTelegraph()
+        return next
+      })
+    }, CHAPTER_DURATION_MS)
+    return () => clearInterval(autoplayRef.current)
+  }, [playing, soundEnabled, fireBreaking])
+
+  // ── fire breaking on mount ────────────────────────────────────────────────
+  useEffect(() => { fireBreaking(0) }, [fireBreaking])
+
+  // ── sound toggle ──────────────────────────────────────────────────────────
+  const toggleSound = useCallback(() => {
+    if (!audioRef.current) audioRef.current = buildAudio()
+    if (!soundEnabled) { audioRef.current?.startDrone(); setSoundEnabled(true) }
+    else               { audioRef.current?.stopDrone();  setSoundEnabled(false) }
+  }, [soundEnabled])
+
+  // ── map init ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
+
     const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
-      center: [67.0, 30.0],
-      zoom: 4.5,
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/satellite-streets-v12',
+      center: [60.0, 28.0],
+      zoom: 3.5,
       projection: 'globe',
+      attributionControl: false,
+      pitch: 45,
+    })
+
+    map.on('style.load', () => {
+      map.setFog({
+        color: 'rgb(30, 20, 10)',
+        'high-color': 'rgb(55, 38, 18)',
+        'horizon-blend': 0.1,
+        'space-color': 'rgb(6, 4, 2)',
+        'star-intensity': 0.8,
+      })
     })
 
     map.on('load', () => {
-      map.setFog({
-        color: 'rgb(8,8,8)',
-        'high-color': 'rgb(12,12,24)',
-        'horizon-blend': 0.02,
-        'space-color': 'rgb(3,3,8)',
-        'star-intensity': 0.9,
+      const gulfISOs = ['SAU','ARE','KWT','QAT','BHR','OMN']
+
+      // Country source
+      map.addSource('cb', { type: 'vector', url: 'mapbox://mapbox.country-boundaries-v1' })
+
+      // Pakistan fills + glow
+      map.addLayer({ id:'pk-fill',   type:'fill', source:'cb', 'source-layer':'country_boundaries',
+        filter:['==','iso_3166_1_alpha_3','PAK'], paint:{'fill-color':GOLD,'fill-opacity':0.22,'fill-antialias':true} })
+      map.addLayer({ id:'pk-line',   type:'line', source:'cb', 'source-layer':'country_boundaries',
+        filter:['==','iso_3166_1_alpha_3','PAK'], paint:{'line-color':GOLD,'line-width':2,'line-opacity':0.9} })
+      map.addLayer({ id:'pk-glow',   type:'line', source:'cb', 'source-layer':'country_boundaries',
+        filter:['==','iso_3166_1_alpha_3','PAK'], paint:{'line-color':GOLD,'line-width':7,'line-opacity':0.25,'line-blur':4} })
+
+      // Gulf fills — individual so we can pulse each
+      gulfISOs.forEach(iso => {
+        map.addLayer({ id:`gulf-${iso}`, type:'fill', source:'cb', 'source-layer':'country_boundaries',
+          filter:['==','iso_3166_1_alpha_3',iso],
+          paint:{'fill-color':RED_INK,'fill-opacity':0,'fill-antialias':true} })
+        map.addLayer({ id:`gulf-b-${iso}`, type:'line', source:'cb', 'source-layer':'country_boundaries',
+          filter:['==','iso_3166_1_alpha_3',iso],
+          paint:{'line-color':RED_INK,'line-width':0,'line-opacity':0} })
       })
 
-      // Pakistan fill
-      map.addLayer({
-        id: 'pakistan-fill', type: 'fill',
-        source: { type: 'vector', url: 'mapbox://mapbox.country-boundaries-v1' },
-        'source-layer': 'country_boundaries',
-        filter: ['==', 'iso_3166_1_alpha_3', 'PAK'],
-        paint: { 'fill-color': '#C9B88A', 'fill-opacity': 0 },
-      })
-      map.addLayer({
-        id: 'pakistan-border', type: 'line',
-        source: { type: 'vector', url: 'mapbox://mapbox.country-boundaries-v1' },
-        'source-layer': 'country_boundaries',
-        filter: ['==', 'iso_3166_1_alpha_3', 'PAK'],
-        paint: { 'line-color': '#C9B88A', 'line-width': 0, 'line-opacity': 0 },
-      })
+      // Arc source + layers
+      const arcFeatures = MIGRATION_FLOWS.map((f, i) => ({
+        type:'Feature', id:i,
+        geometry:{ type:'LineString', coordinates: makeBezierArc(f.from, f.to) },
+        properties: { idx: i }
+      }))
+      map.addSource('arcs', { type:'geojson', data:{ type:'FeatureCollection', features:arcFeatures } })
+      map.addLayer({ id:'arc-glow', type:'line', source:'arcs',
+        paint:{'line-color':GOLD,'line-width':0,'line-opacity':0,'line-blur':5},
+        layout:{'line-cap':'round'} })
+      map.addLayer({ id:'arc-line', type:'line', source:'arcs',
+        paint:{'line-color':GOLD,'line-width':0,'line-opacity':0,'line-dasharray':[2,3]},
+        layout:{'line-cap':'round'} })
 
-      // Gulf fills
-      const gulfISOs = ['SAU', 'ARE', 'QAT', 'KWT', 'OMN', 'BHR']
-      map.addLayer({
-        id: 'gulf-fill', type: 'fill',
-        source: { type: 'vector', url: 'mapbox://mapbox.country-boundaries-v1' },
-        'source-layer': 'country_boundaries',
-        filter: ['in', 'iso_3166_1_alpha_3', ...gulfISOs],
-        paint: { 'fill-color': '#8B1A1A', 'fill-opacity': 0 },
-      })
-      map.addLayer({
-        id: 'gulf-border', type: 'line',
-        source: { type: 'vector', url: 'mapbox://mapbox.country-boundaries-v1' },
-        'source-layer': 'country_boundaries',
-        filter: ['in', 'iso_3166_1_alpha_3', ...gulfISOs],
-        paint: { 'line-color': '#8B1A1A', 'line-width': 0, 'line-opacity': 0 },
-      })
-
-      // Flow lines
-      map.addSource('flows', {
-        type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: MIGRATION_FLOWS.map((f, i) => ({
-            type: 'Feature', id: i,
-            properties: {},
-            geometry: { type: 'LineString', coordinates: [f.from, f.to] },
-          })),
-        },
-      })
-      map.addLayer({
-        id: 'flow-glow', type: 'line', source: 'flows',
-        paint: { 'line-color': '#C9B88A', 'line-width': 0, 'line-opacity': 0, 'line-blur': 4 },
-        layout: { 'line-cap': 'round' },
-      })
-      map.addLayer({
-        id: 'flow-lines', type: 'line', source: 'flows',
-        paint: { 'line-color': '#C9B88A', 'line-width': 0, 'line-opacity': 0, 'line-dasharray': [2, 3] },
-        layout: { 'line-cap': 'round' },
-      })
-
-      // City crowd markers
-      const markers = CITY_MARKERS.map(m => {
-        const el = buildCityMarkerEl(m)
-        const marker = new mapboxgl.Marker({ element: el })
-          .setLngLat(m.coords)
-          .addTo(map)
-        return { marker, el, data: m }
-      })
-      markersRef.current = markers
-
-      // Walker markers (one per flow)
-      const mapContainer = map.getContainer()
+      // Walker markers
+      const container = map.getContainer()
       const walkers = MIGRATION_FLOWS.map((flow) => {
         const el = document.createElement('div')
-        el.style.cssText = `
-          position: absolute;
-          opacity: 0;
-          transition: opacity 0.4s;
-          pointer-events: none;
-          transform: translate(-50%, -50%);
-          filter: drop-shadow(0 0 4px #C9B88A66);
-          z-index: 5;
-        `
-        el.innerHTML = walkerSVG('#C9B88A')
-        mapContainer.appendChild(el)
-        return { el, flow }
+        el.style.cssText = `position:absolute;opacity:0;pointer-events:none;
+          transform:translate(-50%,-50%);z-index:5;
+          filter:drop-shadow(0 0 5px ${GOLD}88);`
+        el.innerHTML = walkerSVG
+        container.appendChild(el)
+        return { el, arc: makeBezierArc(flow.from, flow.to) }
       })
-      walkerMarkersRef.current = walkers
+      walkersRef.current = walkers
+
+      // 3D terrain
+      map.addSource('dem', { type:'raster-dem', url:'mapbox://mapbox.mapbox-terrain-dem-v1', tileSize:512, maxzoom:14 })
+      map.setTerrain({ source:'dem', exaggeration: 1.4 })
 
       mapRef.current = map
-      setMapLoaded(true)
+      setMapReady(true)
     })
 
-    const style = document.createElement('style')
-    style.textContent = `
-      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=Lato:wght@300;400;700&display=swap');
-      .mapboxgl-ctrl-bottom-left,.mapboxgl-ctrl-bottom-right{display:none!important}
-      @keyframes walkerBob {
-        0%,100%{transform:translate(-50%,-50%) rotate(-1deg)}
-        50%{transform:translate(-50%,-52%) rotate(1deg)}
-      }
-    `
-    document.head.appendChild(style)
+    // Inject styles
+    const s = document.createElement('style')
+    s.textContent = CSS + `
+      @keyframes walkerBob{0%,100%{transform:translate(-50%,-50%) rotate(-1.5deg)}50%{transform:translate(-50%,-54%) rotate(1.5deg)}}`
+    document.head.appendChild(s)
 
     return () => {
-      walkerAnimRef.current.forEach(id => cancelAnimationFrame(id))
+      clearInterval(autoplayRef.current)
+      walkerAnimsRef.current.forEach(id => cancelAnimationFrame(id))
+      if (arcAnimRef.current)  clearInterval(arcAnimRef.current)
+      if (gulfPulseRef.current) clearInterval(gulfPulseRef.current)
       map.remove()
     }
-  }, [buildCityMarkerEl, animateWalker])
+  }, [])
 
+  // ── animate walker along bezier ───────────────────────────────────────────
+  const animateWalker = useCallback((map, arc, el, duration) => {
+    let start = null
+    const step = (ts) => {
+      if (!start) start = ts
+      const t = Math.min((ts - start) / duration, 1)
+      const ci = Math.min(Math.floor(t * (arc.length - 1)), arc.length - 1)
+      const pos = map.project(arc[ci])
+      el.style.left = `${pos.x}px`
+      el.style.top  = `${pos.y}px`
+      el.style.opacity = t < 0.05 ? `${t/0.05}` : t > 0.92 ? `${(1-t)/0.08}` : '1'
+      if (t < 1) return requestAnimationFrame(step)
+      // loop
+      start = null
+      return requestAnimationFrame(step)
+    }
+    return requestAnimationFrame(step)
+  }, [])
+
+  // ── chapter effect ────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!mapLoaded || !mapRef.current) return
+    if (!mapReady || !mapRef.current) return
     const map = mapRef.current
-    const showFlows = chapter.type === 'migration' || chapter.type === 'both'
-    const showPak = chapter.type === 'labor' || chapter.type === 'both'
-    const showGulf = chapter.type === 'migration' || chapter.type === 'both'
+    const gulfISOs = ['SAU','ARE','KWT','QAT','BHR','OMN']
 
-    const set = (id, props) => Object.entries(props).forEach(([p, v]) => {
-      try { map.setPaintProperty(id, p, v) } catch (e) {}
-    })
+    const set = (id, props) =>
+      Object.entries(props).forEach(([p,v]) => { try { map.setPaintProperty(id,p,v) } catch {} })
 
-    set('pakistan-fill', { 'fill-opacity': showPak ? 0.1 : 0 })
-    set('pakistan-border', { 'line-width': showPak ? 1.5 : 0, 'line-opacity': showPak ? 0.9 : 0 })
-    set('gulf-fill', { 'fill-opacity': showGulf ? 0.08 : 0 })
-    set('gulf-border', { 'line-width': showGulf ? 1 : 0, 'line-opacity': showGulf ? 0.7 : 0 })
-    set('flow-glow', { 'line-width': showFlows ? 5 : 0, 'line-opacity': showFlows ? 0.12 : 0 })
-    set('flow-lines', { 'line-width': showFlows ? 1.5 : 0, 'line-opacity': showFlows ? 0.85 : 0 })
+    // Pakistan highlight
+    set('pk-fill', { 'fill-opacity': isLabor ? 0.18 : 0.06 })
+    set('pk-line', { 'line-width': isLabor ? 2 : 1, 'line-opacity': isLabor ? 0.9 : 0.35 })
+    set('pk-glow', { 'line-width': isLabor ? 7 : 2, 'line-opacity': isLabor ? 0.22 : 0.05 })
 
-    // City crowd markers — show on migration, use labor SVG on labor
-    markersRef.current.forEach(({ el, data }) => {
-      const isOrigin = data.type === 'origin'
-      const color = isOrigin ? '#C9B88A' : '#8B1A1A'
-      const svgContent = showFlows
-        ? (isOrigin ? crowdOriginSVG('#C9B88A') : crowdOriginSVG('#8B1A1A'))
-        : (showPak && isOrigin ? crowdLaborSVG('#8B1A1A') : '')
+    // Gulf pulse
+    if (gulfPulseRef.current) clearInterval(gulfPulseRef.current)
+    if (isMigration) {
+      gulfISOs.forEach(iso => {
+        set(`gulf-${iso}`, { 'fill-opacity': 0.22 })
+        set(`gulf-b-${iso}`, { 'line-width': 1.2, 'line-opacity': 0.7 })
+      })
+      let hi = false
+      gulfPulseRef.current = setInterval(() => {
+        hi = !hi
+        gulfISOs.forEach(iso => set(`gulf-${iso}`, { 'fill-opacity': hi ? 0.42 : 0.16 }))
+      }, 850)
+    } else {
+      gulfISOs.forEach(iso => {
+        set(`gulf-${iso}`, { 'fill-opacity': 0 })
+        set(`gulf-b-${iso}`, { 'line-width': 0, 'line-opacity': 0 })
+      })
+    }
 
-      const svgWrapper = el.querySelector('div:first-child')
-      if (svgWrapper) {
-        svgWrapper.innerHTML = svgContent
-        svgWrapper.style.filter = `drop-shadow(0 0 6px ${color}44)`
-      }
+    // Arc lines
+    set('arc-glow', { 'line-width': isMigration ? 7 : 0, 'line-opacity': isMigration ? 0.14 : 0 })
+    set('arc-line', { 'line-width': isMigration ? 1.8 : 0, 'line-opacity': isMigration ? 0.88 : 0 })
 
-      const visible = showFlows || (showPak && isOrigin)
-      el.style.opacity = visible ? '1' : '0'
-      el.style.pointerEvents = visible ? 'auto' : 'none'
-    })
+    // Animated dash
+    if (arcAnimRef.current) clearInterval(arcAnimRef.current)
+    if (isMigration) {
+      let offset = 0
+      arcAnimRef.current = setInterval(() => {
+        offset = (offset + 0.22) % 5
+        try { map.setPaintProperty('arc-line','line-dasharray',[2 + offset * 0.1, 3]) } catch {}
+      }, 80)
+    }
 
-    // Walker animation
-    walkerAnimRef.current.forEach(id => cancelAnimationFrame(id))
-    walkerAnimRef.current = []
-
-    walkerMarkersRef.current.forEach(({ el, flow }, i) => {
-      if (showFlows) {
-        el.style.opacity = '1'
-        el.style.animation = 'walkerBob 0.6s ease-in-out infinite'
-        const duration = 7000 + i * 1200
-        const animId = animateWalker(map, flow.from, flow.to, el, duration)
-        walkerAnimRef.current.push(animId)
+    // Walker animations
+    walkerAnimsRef.current.forEach(id => cancelAnimationFrame(id))
+    walkerAnimsRef.current = []
+    walkersRef.current.forEach(({ el, arc }, i) => {
+      if (isMigration) {
+        el.style.animation = 'walkerBob 0.5s ease-in-out infinite'
+        setTimeout(() => {
+          const id = animateWalker(map, arc, el, 8500 + i * 1200)
+          walkerAnimsRef.current.push(id)
+        }, i * 700)
       } else {
         el.style.opacity = '0'
         el.style.animation = 'none'
       }
     })
 
+    // Cinematic camera
     map.flyTo({
-      center: chapter.location.center,
-      zoom: chapter.location.zoom,
-      duration: 2600,
+      center:   chapter.location.center,
+      zoom:     chapter.location.zoom,
+      pitch:    isMigration ? 58 : isLabor ? 42 : 48,
+      bearing:  isMigration ? 12 : isLabor ? -4 : 0,
+      duration: 2700,
       essential: true,
+      curve: 1.45,
     })
-  }, [currentChapter, mapLoaded, chapter, animateWalker])
 
-  useEffect(() => {
-    if (playing) {
-      intervalRef.current = setInterval(() => {
-        setCurrentChapter(prev => {
-          const next = prev + 1
-          if (next >= CHAPTERS.length) { setPlaying(false); return prev }
-          return next
-        })
-      }, 5500)
-    }
-    return () => clearInterval(intervalRef.current)
-  }, [playing])
+  }, [idx, mapReady, chapter, isMigration, isLabor, animateWalker])
 
-  const goToChapter = (i) =>
-    setCurrentChapter(Math.max(0, Math.min(CHAPTERS.length - 1, i)))
+  // ─── RENDER ──────────────────────────────────────────────────────────────
+  const progress = (idx / (CHAPTERS.length - 1)) * 100
 
   return (
-    <div style={S.root}>
-      <div ref={mapContainerRef} style={S.map} />
+    <div style={{ position:'fixed', inset:0, background:'#080503', overflow:'hidden' }}>
 
-      {/* NAV */}
-      <nav style={S.nav}>
-        <Link to="/maps" style={S.navBack}>← The Atlas</Link>
-        <span style={S.navTitle}>The Pakistani Worker</span>
-        <span style={S.navMeta}>{currentChapter + 1} / {CHAPTERS.length}</span>
-      </nav>
+      {/* MAP */}
+      <div ref={mapContainer} style={{ position:'absolute', inset:0 }} />
 
-      {/* CHAPTER PANEL */}
-      <div style={S.panel}>
-        <div style={S.panelTop}>
-          <span
-            style={{ color: iconColor, display: 'flex', alignItems: 'center' }}
-            dangerouslySetInnerHTML={{ __html: CHAPTER_ICONS[chapter.id] }}
-          />
-          <div style={{ ...S.badge, borderColor: iconColor, color: iconColor }}>
-            {chapter.type === 'labor' ? '⚑ Labor' :
-              chapter.type === 'migration' ? '→ Migration' : '◎ Both'}
+      {/* FLOATING PARTICLES */}
+      <div style={{ position:'absolute', inset:0, pointerEvents:'none', zIndex:3 }}>
+        {particles.map(p => <FloatingParticle key={p.id} {...p} />)}
+      </div>
+
+      {/* FILM GRAIN */}
+      <div style={{
+        position:'absolute', inset:0, pointerEvents:'none', zIndex:2, opacity:0.06,
+        backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        backgroundSize:'160px 160px',
+        animation:'grain 0.35s steps(1) infinite',
+      }} />
+
+      {/* SCANLINES */}
+      <div style={{
+        position:'absolute', inset:0, pointerEvents:'none', zIndex:2,
+        background:'linear-gradient(transparent 50%, rgba(0,0,0,0.08) 50%)',
+        backgroundSize:'100% 4px',
+      }} />
+
+      {/* VIGNETTE */}
+      <div style={{
+        position:'absolute', inset:0, pointerEvents:'none', zIndex:2,
+        background:'radial-gradient(ellipse at center, transparent 35%, rgba(4,3,1,0.72) 100%)',
+      }} />
+
+      {/* BREAKING NEWS BANNER */}
+      {breaking.show && (
+        <div style={{
+          position:'fixed', top:68, left:0, right:0, zIndex:45,
+          background:`${RED_INK}f0`, padding:'7px 28px',
+          fontFamily:"'DM Mono', monospace", fontSize:11, color:CREAM,
+          letterSpacing:'0.1em', textTransform:'uppercase',
+          animation:'breakingSlide 5.8s ease forwards',
+          borderBottom:'1px solid rgba(255,200,150,0.18)',
+        }}>
+          {breaking.text}
+        </div>
+      )}
+
+      {/* ── MASTHEAD ─────────────────────────────────────────────────────── */}
+      <div style={{
+        position:'fixed', top:0, left:0, right:0, zIndex:30,
+        background:'rgba(10,8,4,0.97)',
+        borderBottom:`3px solid ${AGED}66`,
+        backdropFilter:'blur(8px)',
+        padding:'0 32px',
+      }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 0 10px' }}>
+
+          <Link to="/maps" style={{
+            fontFamily:"'DM Mono',monospace", fontSize:9,
+            color:AGED, letterSpacing:'0.2em', textDecoration:'none',
+          }} onMouseEnter={e=>e.target.style.color=GOLD} onMouseLeave={e=>e.target.style.color=AGED}>
+            ← ANIMATED MAPS
+          </Link>
+
+          <div style={{ textAlign:'center' }}>
+            <div style={{
+              fontFamily:"'UnifrakturMaguntia',cursive",
+              fontSize:32, color:'#F4E8C8', letterSpacing:'0.04em', lineHeight:1,
+            }}>The Pakistani Worker</div>
+            <div style={{
+              display:'flex', alignItems:'center', gap:22, justifyContent:'center',
+              fontFamily:"'DM Mono',monospace", fontSize:8.5, color:AGED,
+              letterSpacing:'0.14em', marginTop:4,
+            }}>
+              <span>EST. 1947</span>
+              <span className="pulse" style={{ color:RED_INK }}>◆</span>
+              <span>LABOUR · MIGRATION · RESISTANCE</span>
+              <span className="pulse" style={{ color:RED_INK, animationDelay:'0.6s' }}>◆</span>
+              <span>14 MILLION WORKERS</span>
+            </div>
+          </div>
+
+          <div style={{ display:'flex', gap:12, alignItems:'center' }}>
+            <button onClick={toggleSound} style={{
+              background:'transparent',
+              border:`1px solid ${soundEnabled ? GOLD : AGED}66`,
+              color: soundEnabled ? GOLD : AGED,
+              cursor:'pointer', fontFamily:"'DM Mono',monospace",
+              fontSize:9, padding:'4px 9px', letterSpacing:'0.12em',
+              transition:'all 0.25s',
+            }}>
+              {soundEnabled ? '◉ WIRE ON' : '○ WIRE OFF'}
+            </button>
+            <div style={{ fontFamily:"'DM Mono',monospace", fontSize:9, color:AGED, textAlign:'right', letterSpacing:'0.12em' }}>
+              <div>{chapter.year}</div>
+              <div style={{ color:GOLD }}>{idx+1} / {CHAPTERS.length}</div>
+            </div>
           </div>
         </div>
+        <div style={{ height:1, background:AGED, opacity:0.25 }} />
+      </div>
 
-        <div style={S.year}>{chapter.year}</div>
-        <h2 style={S.title}>{chapter.title}</h2>
-        <p style={S.subtitle}>{chapter.subtitle}</p>
-        <p style={S.body}>{chapter.body}</p>
+      {/* ── DISPATCH CLIPPING — top right ────────────────────────────────── */}
+      <div
+        key={panelKey}
+        className="dispatch-clip float-paper"
+        style={{
+          position:'fixed', top:115, right:28, zIndex:30, width:340,
+          background:'rgba(240,228,196,0.97)',
+          border:`1px solid ${AGED}99`,
+          padding:'18px 20px 20px',
+          boxShadow:'8px 12px 35px rgba(0,0,0,0.85), 0 0 0 1px rgba(139,115,85,0.25)',
+        }}
+      >
+        {/* Dispatch header */}
+        <div style={{
+          fontFamily:"'DM Mono',monospace", fontSize:7.5, color:RED_INK,
+          letterSpacing:'0.2em', borderBottom:`1px solid ${AGED}88`,
+          paddingBottom:6, marginBottom:10,
+          display:'flex', justifyContent:'space-between', textTransform:'uppercase',
+        }}>
+          <span>{typeLabel}</span>
+          <span>VOL. XLII • NO. {idx+1}</span>
+        </div>
 
+        {/* Title with typewriter */}
+        <h2 style={{
+          fontFamily:"'UnifrakturMaguntia',cursive", fontSize:23,
+          color:INK, lineHeight:1.2, margin:'0 0 5px',
+        }}>
+          <TypewriterText text={chapter.title} speed={45} />
+        </h2>
+
+        <div style={{
+          fontFamily:"'DM Mono',monospace", fontSize:9, color:'#5a4a32',
+          letterSpacing:'0.06em', marginBottom:12, fontStyle:'italic',
+        }}>{chapter.subtitle}</div>
+
+        <div style={{ width:'100%', height:1, background:`${AGED}55`, margin:'8px 0' }} />
+
+        <p style={{
+          fontFamily:"'Lato',sans-serif", fontSize:12.5,
+          color:'#2a1e0e', lineHeight:1.78, margin:0, fontWeight:400,
+        }}>{chapter.body}</p>
+
+        {/* Quote */}
         {chapter.quote && (
-          <div style={S.quoteBlock}>
-            <div style={{ ...S.quoteBar, background: iconColor }} />
-            <div style={S.quoteInner}>
-              <p style={S.quoteText}>"{chapter.quote.text}"</p>
-              <p style={S.quoteAuthor}>— {chapter.quote.author}</p>
-            </div>
+          <div style={{ marginTop:13, borderLeft:`3px solid ${RED_INK}`, paddingLeft:11 }}>
+            <p style={{
+              fontFamily:"'Lato',sans-serif", fontStyle:'italic',
+              fontSize:11, color:'#4a3020', lineHeight:1.62, margin:'0 0 4px',
+            }}>"{chapter.quote.text}"</p>
+            <span style={{
+              fontFamily:"'DM Mono',monospace", fontSize:8.5,
+              color:RED_INK, letterSpacing:'0.08em',
+            }}>— {chapter.quote.author}</span>
           </div>
         )}
 
+        {/* Animated stats */}
         {(chapter.stats.workers > 0 || chapter.stats.remittance > 0) && (
-          <div style={S.statsRow}>
+          <div style={{
+            display:'flex', gap:16, marginTop:14,
+            paddingTop:12, borderTop:`1px solid ${AGED}66`,
+          }}>
             {chapter.stats.workers > 0 && (
-              <div style={S.statBox}>
-                <span style={S.statNum}>
+              <div style={{ flex:1, textAlign:'center', animation:'countUp 0.5s ease both' }}>
+                <div style={{
+                  fontFamily:"'Playfair Display',serif", fontSize:26,
+                  fontWeight:700, color:RED_INK, lineHeight:1,
+                }}>
                   {Math.round(workerCount).toLocaleString()}
-                  <span style={S.statUnit}>K</span>
-                </span>
-                <span style={S.statLabel}>Workers / yr</span>
+                  <span style={{ fontSize:13, opacity:0.6 }}>K</span>
+                </div>
+                <div style={{
+                  fontFamily:"'DM Mono',monospace", fontSize:7, color:'#6a5038',
+                  letterSpacing:'0.1em', marginTop:3, textTransform:'uppercase',
+                }}>Workers / yr</div>
               </div>
             )}
             {chapter.stats.remittance > 0 && (
-              <div style={S.statBox}>
-                <span style={S.statNum}>
-                  ${remittanceCount.toFixed(1)}
-                  <span style={S.statUnit}>B</span>
-                </span>
-                <span style={S.statLabel}>Remittances</span>
+              <div style={{ flex:1, textAlign:'center', animation:'countUp 0.5s 0.15s ease both' }}>
+                <div style={{
+                  fontFamily:"'Playfair Display',serif", fontSize:26,
+                  fontWeight:700, color:INK, lineHeight:1,
+                }}>
+                  ${remittCount.toFixed(1)}
+                  <span style={{ fontSize:13, opacity:0.6 }}>B</span>
+                </div>
+                <div style={{
+                  fontFamily:"'DM Mono',monospace", fontSize:7, color:'#6a5038',
+                  letterSpacing:'0.1em', marginTop:3, textTransform:'uppercase',
+                }}>Remittances</div>
               </div>
             )}
           </div>
         )}
 
-        <div style={S.controls}>
-          <button
-            onClick={() => goToChapter(currentChapter - 1)}
-            disabled={currentChapter === 0}
-            style={{ ...S.btn, opacity: currentChapter === 0 ? 0.25 : 1 }}
-          >←</button>
-          <button
-            onClick={() => setPlaying(p => !p)}
-            style={{ ...S.btn, ...S.btnPlay, borderColor: iconColor + '66', color: iconColor }}
-          >
-            {playing ? '⏸ Pause' : '▶ Play'}
-          </button>
-          <button
-            onClick={() => goToChapter(currentChapter + 1)}
-            disabled={currentChapter === CHAPTERS.length - 1}
-            style={{ ...S.btn, opacity: currentChapter === CHAPTERS.length - 1 ? 0.25 : 1 }}
-          >→</button>
-        </div>
-
-        <div style={S.progressTrack}>
-          <div style={{ ...S.progressFill, width: `${progress}%`, background: iconColor }} />
-        </div>
+        {/* Stamp */}
+        <div className="stamp-in" style={{
+          position:'absolute', bottom:10, right:12,
+          fontFamily:"'DM Mono',monospace", fontSize:7.5, color:RED_INK,
+          border:`1.5px solid ${RED_INK}`, padding:'2px 6px', letterSpacing:'0.18em',
+        }}>VERIFIED • AP</div>
       </div>
 
-      {/* TIMELINE */}
-      <div style={S.timeline}>
+      {/* ── CHAPTER DOT NAV — left side ──────────────────────────────────── */}
+      <div style={{
+        position:'fixed', left:22, top:'50%', transform:'translateY(-50%)',
+        zIndex:30, display:'flex', flexDirection:'column', gap:11, alignItems:'center',
+      }}>
         {CHAPTERS.map((ch, i) => (
-          <button
-            key={ch.id}
-            onClick={() => goToChapter(i)}
-            title={`${ch.year} — ${ch.title}`}
+          <button key={ch.id} onClick={() => { goTo(i); setPlaying(false) }}
+            title={`${ch.year}: ${ch.title}`}
             style={{
-              ...S.tick,
-              background: i === currentChapter ? '#C9B88A'
-                : i < currentChapter ? '#3a3a3a' : '#1a1a1a',
-              transform: i === currentChapter ? 'scaleY(1)' : 'scaleY(0.35)',
-              borderColor: ch.type === 'labor' ? '#8B1A1A55'
-                : ch.type === 'migration' ? '#C9B88A33' : '#2a2a2a',
+              width: i===idx ? 12 : 6, height: i===idx ? 12 : 6,
+              borderRadius:'50%',
+              background: i===idx ? GOLD : i<idx ? `${GOLD}55` : 'rgba(201,168,74,0.22)',
+              border:`1px solid ${i===idx ? GOLD : 'rgba(201,168,74,0.28)'}`,
+              cursor:'pointer', padding:0,
+              transition:'all 0.3s cubic-bezier(0.34,1.2,0.64,1)',
+              transform: i===idx ? 'scale(1.2)' : 'scale(1)',
             }}
           />
         ))}
       </div>
 
-      {/* LEGEND */}
-      <div style={S.legend}>
-        <p style={S.legendTitle}>Map Key</p>
-        <div style={S.legendItem}>
-          <div style={{ ...S.legendDot, background: '#C9B88A' }} />
-          <span style={S.legendLabel}>Pakistan / Origin</span>
-        </div>
-        <div style={S.legendItem}>
-          <div style={{ ...S.legendDot, background: '#8B1A1A' }} />
-          <span style={S.legendLabel}>Gulf States / Dest.</span>
-        </div>
-        <div style={S.legendItem}>
-          <div style={{ width: 16, height: 0, borderTop: '1px dashed #C9B88A', flexShrink: 0 }} />
-          <span style={S.legendLabel}>Migration Flow</span>
-        </div>
-        <div style={S.legendItem}>
-          <div style={{ ...S.legendDot, background: '#C9B88A', borderRadius: 0, width: 10, height: 14 }} />
-          <span style={S.legendLabel}>Worker</span>
+      {/* ── YEAR WATERMARK ───────────────────────────────────────────────── */}
+      <div style={{
+        position:'fixed', bottom:95, left:28, zIndex:3,
+        fontFamily:"'UnifrakturMaguntia',cursive",
+        fontSize:130, color:'rgba(201,168,74,0.04)',
+        lineHeight:1, pointerEvents:'none', letterSpacing:'-0.02em',
+        userSelect:'none',
+      }}>
+        {chapter.year.split(' ')[0].split('–')[0]}
+      </div>
+
+      {/* ── CONTROLS ─────────────────────────────────────────────────────── */}
+      <div style={{
+        position:'fixed', bottom:46, left:'50%', transform:'translateX(-50%)',
+        zIndex:30, display:'flex', alignItems:'center', gap:14,
+      }}>
+        <button
+          onClick={() => { goTo(idx-1); setPlaying(false) }} disabled={idx===0}
+          style={{
+            background:'rgba(240,228,196,0.08)',
+            border:`1px solid ${idx===0 ? '#2a2015' : AGED}66`,
+            color: idx===0 ? '#2a2015' : AGED, cursor: idx===0 ? 'default' : 'pointer',
+            fontFamily:"'DM Mono',monospace", fontSize:11, padding:'8px 18px',
+            letterSpacing:'0.1em', transition:'all 0.25s',
+          }}
+          onMouseEnter={e=>{ if(idx>0){e.target.style.borderColor=GOLD;e.target.style.background='rgba(240,228,196,0.15)'}}}
+          onMouseLeave={e=>{ if(idx>0){e.target.style.borderColor=`${AGED}66`;e.target.style.background='rgba(240,228,196,0.08)'}}}
+        >← PREV</button>
+
+        <button onClick={() => setPlaying(p => !p)} style={{
+          background: playing ? `${RED_INK}35` : 'rgba(240,228,196,0.08)',
+          border:`1px solid ${playing ? RED_INK : GOLD}`,
+          color: playing ? '#ffaa88' : GOLD,
+          cursor:'pointer', fontFamily:"'DM Mono',monospace",
+          fontSize:11, padding:'8px 26px', letterSpacing:'0.14em', transition:'all 0.25s',
+        }}>
+          {playing ? '⏹ STOP' : '▶ PLAY'}
+        </button>
+
+        <button
+          onClick={() => { goTo(idx+1); setPlaying(false) }} disabled={idx===CHAPTERS.length-1}
+          style={{
+            background:'rgba(240,228,196,0.08)',
+            border:`1px solid ${idx===CHAPTERS.length-1 ? '#2a2015' : AGED}66`,
+            color: idx===CHAPTERS.length-1 ? '#2a2015' : AGED,
+            cursor: idx===CHAPTERS.length-1 ? 'default' : 'pointer',
+            fontFamily:"'DM Mono',monospace", fontSize:11, padding:'8px 18px',
+            letterSpacing:'0.1em', transition:'all 0.25s',
+          }}
+          onMouseEnter={e=>{ if(idx<CHAPTERS.length-1){e.target.style.borderColor=GOLD;e.target.style.background='rgba(240,228,196,0.15)'}}}
+          onMouseLeave={e=>{ if(idx<CHAPTERS.length-1){e.target.style.borderColor=`${AGED}66`;e.target.style.background='rgba(240,228,196,0.08)'}}}
+        >NEXT →</button>
+      </div>
+
+      {/* PROGRESS BAR */}
+      <div style={{
+        position:'fixed', bottom:40, left:0, right:0, height:2,
+        background:'rgba(201,168,74,0.08)', zIndex:29,
+      }}>
+        <div style={{
+          height:'100%', width:`${progress}%`,
+          background:`linear-gradient(90deg,${RED_INK},${GOLD})`,
+          transition:'width 0.7s ease',
+        }}/>
+      </div>
+
+      {/* ── TICKER TAPE ──────────────────────────────────────────────────── */}
+      <div style={{
+        position:'fixed', bottom:0, left:0, right:0, zIndex:30,
+        height:38, background:`linear-gradient(90deg,${RED_INK}cc,${RED_INK})`,
+        overflow:'hidden', display:'flex', alignItems:'center',
+        borderTop:'1px solid rgba(255,200,150,0.25)',
+        boxShadow:'0 -2px 12px rgba(0,0,0,0.4)',
+      }}>
+        <div style={{
+          display:'inline-flex', alignItems:'center',
+          animation:'tickerScroll 55s linear infinite',
+          whiteSpace:'nowrap', willChange:'transform',
+        }}>
+          {[...TICKER_ITEMS,...TICKER_ITEMS].map((item, i) => (
+            <span key={i} style={{
+              fontFamily:"'DM Mono',monospace", fontSize:10,
+              color:'rgba(255,238,210,0.93)', letterSpacing:'0.14em',
+              textTransform:'uppercase', padding:'0 32px',
+              textShadow:'0 1px 2px rgba(0,0,0,0.35)',
+            }}>
+              {item}
+              <span style={{ color:'rgba(255,215,150,0.5)', marginLeft:30, fontSize:11 }}>◆</span>
+            </span>
+          ))}
         </div>
       </div>
+
     </div>
   )
-}
-
-const S = {
-  root: {
-    position: 'relative', width: '100vw', height: '100vh',
-    background: '#0D0D0D', overflow: 'hidden',
-    fontFamily: "'Lato', sans-serif",
-  },
-  map: { position: 'absolute', inset: 0, width: '100%', height: '100%' },
-  nav: {
-    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    padding: '20px 32px',
-    background: 'linear-gradient(to bottom, rgba(10,10,10,0.98), transparent)',
-  },
-  navBack: {
-    fontFamily: "'DM Mono', monospace", fontSize: '11px',
-    letterSpacing: '0.15em', color: '#555', textTransform: 'uppercase',
-    textDecoration: 'none',
-  },
-  navTitle: {
-    fontFamily: "'Playfair Display', serif", fontSize: '16px',
-    color: '#E8E0D0', fontStyle: 'italic',
-    position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-  },
-  navMeta: {
-    fontFamily: "'DM Mono', monospace", fontSize: '11px',
-    letterSpacing: '0.15em', color: '#444',
-  },
-  panel: {
-    position: 'absolute', bottom: '72px', left: '32px', width: '400px',
-    zIndex: 10, background: 'rgba(8,8,8,0.95)',
-    border: '1px solid #252525', padding: '24px 24px 18px',
-    backdropFilter: 'blur(20px)',
-    display: 'flex', flexDirection: 'column', gap: '10px',
-  },
-  panelTop: { display: 'flex', alignItems: 'center', gap: '12px' },
-  badge: {
-    fontFamily: "'DM Mono', monospace", fontSize: '9px',
-    letterSpacing: '0.2em', border: '1px solid',
-    padding: '3px 8px', textTransform: 'uppercase',
-  },
-  year: {
-    fontFamily: "'DM Mono', monospace", fontSize: '12px',
-    letterSpacing: '0.25em', color: '#C9B88A',
-  },
-  title: {
-    fontFamily: "'Playfair Display', serif", fontSize: '26px',
-    fontWeight: 700, color: '#F0E8D8', lineHeight: 1.1,
-    letterSpacing: '-0.01em',
-  },
-  subtitle: {
-    fontFamily: "'DM Mono', monospace", fontSize: '9px',
-    letterSpacing: '0.18em', color: '#888', textTransform: 'uppercase',
-  },
-  body: {
-    fontFamily: "'Lato', sans-serif", fontSize: '13px',
-    lineHeight: 1.8, color: '#aaa', fontWeight: 300,
-    borderTop: '1px solid #1e1e1e', paddingTop: '10px',
-  },
-  quoteBlock: {
-    display: 'flex', gap: '10px',
-    background: 'rgba(255,255,255,0.02)',
-    border: '1px solid #1e1e1e', padding: '12px',
-  },
-  quoteBar: { width: '2px', flexShrink: 0, borderRadius: 2, opacity: 0.7 },
-  quoteInner: { display: 'flex', flexDirection: 'column', gap: '6px' },
-  quoteText: {
-    fontFamily: "'Playfair Display', serif", fontSize: '12px',
-    fontStyle: 'italic', color: '#bbb', lineHeight: 1.7,
-  },
-  quoteAuthor: {
-    fontFamily: "'DM Mono', monospace", fontSize: '8px',
-    letterSpacing: '0.12em', color: '#555', textTransform: 'uppercase',
-  },
-  statsRow: {
-    display: 'flex', gap: '24px',
-    borderTop: '1px solid #1e1e1e', paddingTop: '10px',
-  },
-  statBox: { display: 'flex', flexDirection: 'column', gap: '3px' },
-  statNum: {
-    fontFamily: "'Playfair Display', serif", fontSize: '28px',
-    fontWeight: 700, color: '#C9B88A', lineHeight: 1,
-  },
-  statUnit: { fontSize: '16px', opacity: 0.6 },
-  statLabel: {
-    fontFamily: "'DM Mono', monospace", fontSize: '8px',
-    letterSpacing: '0.15em', color: '#555', textTransform: 'uppercase',
-  },
-  controls: { display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' },
-  btn: {
-    fontFamily: "'DM Mono', monospace", fontSize: '11px',
-    letterSpacing: '0.12em', color: '#666',
-    padding: '8px 14px', border: '1px solid #252525',
-    background: 'transparent', cursor: 'pointer',
-    textTransform: 'uppercase', transition: 'all 0.2s',
-  },
-  btnPlay: { padding: '8px 20px' },
-  progressTrack: {
-    height: '2px', background: '#1a1a1a',
-    borderRadius: 2, overflow: 'hidden', marginTop: '2px',
-  },
-  progressFill: {
-    height: '100%', borderRadius: 2,
-    transition: 'width 0.5s ease',
-  },
-  timeline: {
-    position: 'absolute', bottom: '28px', left: '32px', right: '32px',
-    zIndex: 10, display: 'flex', alignItems: 'center', gap: '3px', height: '18px',
-  },
-  tick: {
-    flex: 1, height: '100%', border: '1px solid',
-    cursor: 'pointer', transition: 'all 0.35s', background: '#1a1a1a',
-  },
-  legend: {
-    position: 'absolute', top: '72px', right: '32px', zIndex: 10,
-    background: 'rgba(8,8,8,0.94)', border: '1px solid #252525',
-    padding: '16px 20px', backdropFilter: 'blur(12px)',
-    display: 'flex', flexDirection: 'column', gap: '10px',
-  },
-  legendTitle: {
-    fontFamily: "'DM Mono', monospace", fontSize: '9px',
-    letterSpacing: '0.2em', color: '#333', textTransform: 'uppercase',
-    marginBottom: '2px',
-  },
-  legendItem: { display: 'flex', alignItems: 'center', gap: '10px' },
-  legendDot: { width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0 },
-  legendLabel: {
-    fontFamily: "'DM Mono', monospace", fontSize: '9px',
-    letterSpacing: '0.12em', color: '#666', textTransform: 'uppercase',
-  },
 }
 
 export default PakistanWorker
