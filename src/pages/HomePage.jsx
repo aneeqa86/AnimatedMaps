@@ -124,7 +124,10 @@ const HomePage = () => (
       {/* LEFT */}
       <div style={{
         padding: '0 60px 0 48px',
-        display: 'flex', flexDirection: 'column', justifyContent: 'center',
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center',
+        alignItems: 'center',
         borderRight: `1px solid ${RULE}`,
       }}>
         <div className="fade-in" style={{ animationDelay: '0.05s', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
@@ -134,7 +137,7 @@ const HomePage = () => (
           </span>
         </div>
 
-        <div className="fade-in" style={{ animationDelay: '0.1s' }}>
+        <div className="fade-in" style={{ animationDelay: '0.1s', textAlign: 'center' }}>
           <h1 style={{
             fontFamily: "'Playfair Display', serif",
             fontSize: 'clamp(42px, 4.8vw, 70px)',
@@ -147,7 +150,7 @@ const HomePage = () => (
           </h1>
         </div>
 
-        <div className="fade-in" style={{ animationDelay: '0.18s', marginTop: 28 }}>
+        <div className="fade-in" style={{ animationDelay: '0.18s', marginTop: 28, textAlign: 'center' }}>
           <p style={{
             fontFamily: "'Lato', sans-serif", fontSize: 14,
             lineHeight: 1.85, color: INKMD, fontWeight: 300,
@@ -167,7 +170,7 @@ const HomePage = () => (
           </Link>
         </div>
 
-        <div className="fade-in" style={{ animationDelay: '0.24s', marginTop: 'auto', paddingBottom: 24 }}>
+        <div className="fade-in" style={{ animationDelay: '0.24s', marginTop: 40, marginBottom: 0 }}>
           <div style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
             <div>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 34, fontWeight: 700, color: GOLD, lineHeight: 1, letterSpacing: '-0.02em' }}>

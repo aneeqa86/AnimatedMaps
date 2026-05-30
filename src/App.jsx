@@ -11,6 +11,10 @@ import CricketMap from '@/pages/maps/CricketMap'
 import HajjMap from '@/pages/maps/HajjMap'
 import TurtleMap from '@/pages/maps/TurtleMap'
 import ChagaiMap from '@/pages/maps/ChagaiMap'
+import EuropeMap from '@/pages/maps/EuropeMap'
+import PoliticalDnaMap from './pages/maps/PoliticaldnaMap'
+import DinosaurMap from './pages/maps/DinosaurMap'
+import TrafficMap from './pages/maps/TrafficMap'
 
 const App = () => {
   return (
@@ -26,6 +30,10 @@ const App = () => {
         <Route path="/maps/hajj-roads" element={<HajjMap />} />
         <Route path="/maps/turtle-day" element={<TurtleMap />} />
         <Route path="/maps/chagai-1998" element={<ChagaiMap />} />
+        <Route path="/maps/europe-rewritten" element={<EuropeMap />} />
+        <Route path="/maps/political-dna" element={<PoliticalDnaMap />} />
+        <Route path="/maps/dinosaur-deep-time" element={<DinosaurMap />} />
+        <Route path="/maps/karachi-traffic" element={<TrafficMap />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
